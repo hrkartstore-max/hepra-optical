@@ -164,7 +164,7 @@
       price: (product.price || 0) + (extras.lensPrice || 0),
       qty: 1,
       image: product.image,
-      size: product.size,
+      size: extras.size || product.size,
       lens: extras.lens || null,
       lensId: extras.lensId || null,
       rx: extras.rx || false,
@@ -182,10 +182,12 @@
   const pdpGalleryImages = product => [product.image, 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=900&q=85', 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=900&q=85', 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=900&q=85'];
   function renderProductPage(product) {
     activePdpProduct = product;
+    window.pdpSelectedSize = product.size || 'Medium';
     const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
     const image = document.getElementById('pdpImage'); if (image) { image.src = product.image; image.alt = product.name; }
     setText('pdpName', product.name); setText('pdpReviews', product.rating + ' · ' + Number(product.reviews || 0).toLocaleString('en-IN') + ' Reviews');
-    setText('pdpPrice', formatPrice(product.price)); setText('pdpMrp', formatPrice(product.mrp));
+    setText('pdpPrice', formatPrice(product.price)); setText('pdpMrp', formatPrice(product.mrp)); setText('pdpSummaryPrice', formatPrice(product.price));
+    setText('pdpMobileProductName', product.name); setText('pdpMobileProductPrice', formatPrice(product.price));
     setText('pdpOff', (product.mrp ? Math.round((product.mrp-product.price)/product.mrp*100) : 0) + '% OFF');
     setText('pdpDims', 'Frame Size: ' + (product.size || 'Standard') + ' · ' + (product.dims || 'Dimensions vary by frame'));
     setText('pdpMaterial', product.category === 'sunglasses' ? 'Frame + sun lenses' : 'Frame material varies by model');
@@ -193,6 +195,7 @@
     setText('pdpDesc', product.name + ' is designed for everyday style and comfort. Check the frame dimensions and fit, then choose frame-only or configure your prescription lens package. Lens suitability and final fitting should be confirmed by an optician.');
     const thumbs = document.getElementById('pdpThumbs'); if (thumbs) thumbs.innerHTML = pdpGalleryImages(product).map((src, i) => '<button type="button" class="pdp-thumb ' + (i === 0 ? 'active' : '') + '" data-pdp-img="' + src + '" aria-label="View product image ' + (i+1) + '"><img src="' + src.replace(/w=900&q=85/, 'w=160&q=80') + '" alt="" loading="lazy"></button>').join('');
     const colors = document.getElementById('pdpColors'); if (colors) colors.innerHTML = (product.colors || []).map((color, i) => '<button type="button" class="color-dot ' + (i === 0 ? 'active' : '') + '" style="background:' + color + '" data-pdp-color="' + i + '" aria-label="Select frame colour ' + (i+1) + '" aria-pressed="' + (i === 0) + '"></button>').join('');
+    const sizeOptions = document.getElementById('pdpSizeOptions'); if (sizeOptions) sizeOptions.innerHTML = ['Small','Medium','Large'].map(size => '<button type="button" class="pdp-size-option ' + (size === window.pdpSelectedSize ? 'active' : '') + '" data-pdp-size="' + size + '" aria-pressed="' + (size === window.pdpSelectedSize) + '">' + size + '</button>').join('');
     const related = document.getElementById('relatedGrid'); if (related) renderProducts(products.filter(item => item.id !== product.id).slice(0, 4), 'relatedGrid');
     document.title = product.name + ' | HEPRA Optical';
   }
@@ -208,10 +211,13 @@
     if (thumb) { const img = document.getElementById('pdpImage'); if (img) img.src = thumb.getAttribute('data-pdp-img'); document.querySelectorAll('[data-pdp-img]').forEach(item => item.classList.toggle('active', item === thumb)); }
     const color = event.target.closest('[data-pdp-color]');
     if (color) { document.querySelectorAll('[data-pdp-color]').forEach(item => { const active = item === color; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); }); }
-    if (event.target.closest('#pdpBuyRx') && activePdpProduct) window.openEyeglassOrder(activePdpProduct.id);
-    if (event.target.closest('#pdpBuyFrame') && activePdpProduct) { window.addFrameOnly(activePdpProduct.id); }
+    const size = event.target.closest('[data-pdp-size]');
+    if (size) { window.pdpSelectedSize = size.getAttribute('data-pdp-size'); document.querySelectorAll('[data-pdp-size]').forEach(item => { const active = item === size; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); }); setPdpSizeHelp(window.pdpSelectedSize); }
+    if ((event.target.closest('#pdpBuyRx') || event.target.closest('#pdpMobileBuyRx')) && activePdpProduct) { window.openEyeglassOrder(activePdpProduct.id); }
+    if (event.target.closest('#pdpBuyFrame') && activePdpProduct) { addToCart(activePdpProduct, {size: window.pdpSelectedSize || activePdpProduct.size}); }
     if (event.target.closest('#pdpTryOn')) document.getElementById('tryOnModal')?.classList.add('open');
   });
+  function setPdpSizeHelp(size) { const el = document.getElementById('pdpSizeHelp'); if (el) el.textContent = 'Selected: ' + size + ' · confirm availability'; }
   /* ========== RENDER PRODUCTS ========== */
   function renderProducts(list, containerId) {
     const grid = document.getElementById(containerId);
@@ -317,7 +323,7 @@
   }
 
   window.openEyeglassOrder = function (id) {
-    selectedProduct = products.find(p => p.id === id) || products[0];
+    selectedProduct = { ...(products.find(p => p.id === id) || products[0]), size: (activePdpProduct && activePdpProduct.id === id && window.pdpSelectedSize) ? window.pdpSelectedSize : (products.find(p => p.id === id) || products[0]).size };
     framePrice = selectedProduct.price;
     selectedLens = lensOptions[0];
     selectedMaterial = lensMaterials[0];
