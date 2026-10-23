@@ -775,9 +775,29 @@
     initFilters();
     document.addEventListener('click', event => { const button = event.target.closest('.wishlist-toggle'); if (button) { event.preventDefault(); toggleWishlist(button.dataset.id); } });
     const checkoutForm = document.getElementById('checkoutForm');
+    let pendingOnlineOrderReference = null;
+    let paymentInProgress = false;
+    async function loadRazorpayCheckout() {
+      if (window.Razorpay) return true;
+      return new Promise(resolve => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+      });
+    }
+    function clearCartAfterOrder(form, button, label) {
+      cart = [];
+      saveCart();
+      form.reset();
+      pendingOnlineOrderReference = null;
+      if (button) { button.disabled = true; button.textContent = label; }
+    }
     checkoutForm?.addEventListener('submit', async event => {
       event.preventDefault();
-      if (!cart.length) { alert('Your cart is empty. Add a product before checkout.'); return; }
+      if (paymentInProgress) return;
+      if (!cart.length && !pendingOnlineOrderReference) { alert('Your cart is empty. Add a product before checkout.'); return; }
       if (!checkoutForm.reportValidity()) return;
 
       const notice = document.getElementById('checkoutNotice');
@@ -804,36 +824,86 @@
         }))
       };
 
-      if (notice) { notice.hidden = false; notice.textContent = 'Submitting order securely…'; }
-      if (button) { button.disabled = true; button.textContent = 'SUBMITTING ORDER…'; }
+      const setNotice = message => { if (notice) { notice.hidden = false; notice.textContent = message; } };
+      if (button) { button.disabled = true; button.textContent = paymentMethod === 'cod' ? 'SAVING ORDER…' : 'PREPARING PAYMENT…'; }
+      paymentInProgress = true;
       try {
-        const response = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          credentials: 'same-origin'
+        let order;
+        if (pendingOnlineOrderReference) {
+          order = { reference: pendingOnlineOrderReference };
+        } else {
+          setNotice('Saving your order securely…');
+          const response = await fetch('/api/orders', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload), credentials: 'same-origin'
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok || !result.ok || !result.order?.reference) throw new Error(result.error || 'Order could not be saved. Please try again.');
+          order = result.order;
+          if (paymentMethod !== 'cod') pendingOnlineOrderReference = order.reference;
+        }
+
+        if (paymentMethod === 'cod') {
+          setNotice('Order saved: ' + order.reference + '. Total: ' + formatPrice(order.total) + '. Cash on Delivery selected.');
+          clearCartAfterOrder(checkoutForm, button, 'ORDER SAVED · CASH ON DELIVERY');
+          return;
+        }
+
+        setNotice('Connecting to secure payment checkout…');
+        const paymentResponse = await fetch('/api/payments/create-order', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reference: order.reference }), credentials: 'same-origin'
         });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok || !result.ok || !result.order?.reference) {
-          throw new Error(result.error || 'Order could not be saved. Please try again later.');
+        const paymentData = await paymentResponse.json().catch(() => ({}));
+        if (!paymentResponse.ok || !paymentData.ok || !paymentData.paymentOrder?.id || !paymentData.keyId) {
+          throw new Error(paymentData.error || 'Could not start payment. Your unpaid order reference is ' + order.reference + '. Retry to continue.');
         }
-        if (notice) {
-          notice.hidden = false;
-          notice.textContent = 'Order saved: ' + result.order.reference + '. Total: ' + formatPrice(result.order.total) + '. Status: ' + result.order.status + '. Payment has not been processed; this is not a payment confirmation.';
-        }
-        // Clear cart only after the server confirms a successful database write.
-        cart = [];
-        saveCart();
-        checkoutForm.reset();
-        if (button) button.textContent = 'ORDER SAVED · PAYMENT NOT PROCESSED';
+        if (!await loadRazorpayCheckout()) throw new Error('Payment checkout could not load. Your order ' + order.reference + ' is saved but unpaid. Retry when your connection is stable.');
+        const checkout = new window.Razorpay({
+          key: paymentData.keyId,
+          amount: paymentData.paymentOrder.amount,
+          currency: paymentData.paymentOrder.currency || 'INR',
+          name: 'HEPRA Optical',
+          description: 'Order ' + order.reference,
+          order_id: paymentData.paymentOrder.id,
+          prefill: paymentData.customer,
+          notes: { orderReference: order.reference },
+          theme: { color: '#400378' },
+          modal: { ondismiss: () => {
+            paymentInProgress = false;
+            if (button) { button.disabled = false; button.textContent = 'RETRY PAYMENT'; }
+            setNotice('Payment window closed. Order ' + order.reference + ' remains unpaid. Your cart is kept; submit again to retry.');
+          }},
+          handler: async payment => {
+            try {
+              setNotice('Verifying payment with the server…');
+              const verifyResponse = await fetch('/api/payments/verify', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reference: order.reference, razorpay_order_id: payment.razorpay_order_id, razorpay_payment_id: payment.razorpay_payment_id, razorpay_signature: payment.razorpay_signature }),
+                credentials: 'same-origin'
+              });
+              const verified = await verifyResponse.json().catch(() => ({}));
+              if (!verifyResponse.ok || !verified.ok || verified.paymentStatus !== 'paid') throw new Error(verified.error || 'Payment verification is pending. Do not retry payment until order status is checked.');
+              setNotice('Payment verified. Order ' + order.reference + ' is confirmed. Thank you!');
+              clearCartAfterOrder(checkoutForm, button, 'PAYMENT VERIFIED · ORDER CONFIRMED');
+            } catch (error) {
+              setNotice((error.message || 'Payment verification could not complete.') + ' Reference: ' + order.reference + '. Do not pay again yet; contact support to confirm status.');
+              if (button) { button.disabled = false; button.textContent = 'CHECK PAYMENT STATUS / RETRY'; }
+            } finally {
+              paymentInProgress = false;
+            }
+          }
+        });
+        checkout.on('payment.failed', event => {
+          setNotice('Payment failed or was cancelled. Order ' + order.reference + ' remains unpaid. Your cart is kept; you can retry.');
+          if (button) { button.disabled = false; button.textContent = 'RETRY PAYMENT'; }
+          paymentInProgress = false;
+        });
+        checkout.open();
       } catch (error) {
-        if (notice) {
-          notice.hidden = false;
-          notice.textContent = error.message || 'Order service is unavailable. Your cart has been kept.';
-        }
-        if (button) button.textContent = 'RETRY ORDER SUBMISSION';
-      } finally {
-        if (button) button.disabled = cart.length === 0;
+        setNotice(error.message || 'Checkout is unavailable. Your cart has been kept.');
+        if (button) { button.disabled = false; button.textContent = pendingOnlineOrderReference ? 'RETRY PAYMENT' : 'RETRY CHECKOUT'; }
+        paymentInProgress = false;
       }
     });;
   });
