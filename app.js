@@ -47,6 +47,11 @@
   let orderType = 'eyeglasses'; // eyeglasses | contact
   let selectedProduct = null;
   let selectedLens = lensOptions[0];
+  const lensMaterials = [{id:'standard',name:'Standard 1.56',desc:'Everyday prescription range',price:0},{id:'thin',name:'Thin 1.60',desc:'Slimmer profile for stronger powers',price:700},{id:'ultrathin',name:'Ultra-thin 1.67',desc:'Lightweight look for higher powers',price:1400},{id:'premium',name:'Premium 1.74',desc:'Thinnest option for suitable prescriptions',price:2400}];
+  const lensCoatings = [{id:'none',name:'Standard finish',desc:'Basic lens finish',price:0},{id:'ar',name:'Anti-reflective',desc:'Helps reduce reflections',price:399},{id:'blue',name:'Blue-light filter',desc:'Optional filter for digital-use preferences',price:599},{id:'uv',name:'UV protection',desc:'UV protection coating',price:299}];
+  let selectedMaterial = lensMaterials[0];
+  let selectedCoating = lensCoatings[0];
+  const configuredLensPrice = () => selectedLens.price + selectedMaterial.price + selectedCoating.price;
   let selectedClType = 'Daily';
   let selectedPack = 30;
   let framePrice = 0;
@@ -294,6 +299,8 @@
     selectedProduct = products.find(p => p.id === id) || products[0];
     framePrice = selectedProduct.price;
     selectedLens = lensOptions[0];
+    selectedMaterial = lensMaterials[0];
+    selectedCoating = lensCoatings[0];
     orderType = 'eyeglasses';
     orderStep = 1;
     renderOrderDrawer();
