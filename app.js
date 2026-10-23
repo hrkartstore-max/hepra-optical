@@ -84,6 +84,7 @@
           <div class="cart-item-info">
             <h4>${item.name}</h4>
             <div class="cart-item-meta">
+              ${item.color ? '<div>Frame colour: <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + String(item.color).replace(/[^#a-fA-F0-9]/g, '') + ';border:1px solid #bbb"></span> ' + String(item.color) + '</div>' : ''}
               ${item.lens ? 'Lens: ' + item.lens + '<br>' : ''}
               ${item.rx ? '<span style="color:var(--success);font-weight:650;">Prescription details ✓</span>' : (item.size || '')}
               ${item.rxFileName ? '<div>File selected: ' + String(item.rxFileName).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])) + ' (not uploaded)</div>' : ''}
@@ -158,6 +159,7 @@
 
   function addToCart(product, extras = {}) {
     const isContactPack = /^10[1-4]_pack_/.test(String(product.id));
+    const selectedColor = extras.color || product.selectedColor || product.colors?.[0] || null;
     cart.push({
       id: String(product.id),
       name: product.name,
@@ -165,6 +167,7 @@
       qty: 1,
       image: product.image,
       size: extras.size || product.size,
+      color: selectedColor,
       lens: extras.lens || null,
       lensId: extras.lensId || null,
       rx: extras.rx || false,
@@ -179,10 +182,12 @@
 
   /* V15 — full product detail page */
   let activePdpProduct = null;
+  window.pdpSelectedColor = null;
   const pdpGalleryImages = product => [product.image, 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=900&q=85', 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=900&q=85', 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=900&q=85'];
   function renderProductPage(product) {
     activePdpProduct = product;
     window.pdpSelectedSize = product.size || 'Medium';
+    window.pdpSelectedColor = (product.colors || [])[0] || null;
     const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
     const image = document.getElementById('pdpImage'); if (image) { image.src = product.image; image.alt = product.name; }
     setText('pdpName', product.name); setText('pdpReviews', product.rating + ' · ' + Number(product.reviews || 0).toLocaleString('en-IN') + ' Reviews');
@@ -195,6 +200,7 @@
     setText('pdpDesc', product.name + ' is designed for everyday style and comfort. Check the frame dimensions and fit, then choose frame-only or configure your prescription lens package. Lens suitability and final fitting should be confirmed by an optician.');
     const thumbs = document.getElementById('pdpThumbs'); if (thumbs) thumbs.innerHTML = pdpGalleryImages(product).map((src, i) => '<button type="button" class="pdp-thumb ' + (i === 0 ? 'active' : '') + '" data-pdp-img="' + src + '" aria-label="View product image ' + (i+1) + '"><img src="' + src.replace(/w=900&q=85/, 'w=160&q=80') + '" alt="" loading="lazy"></button>').join('');
     const colors = document.getElementById('pdpColors'); if (colors) colors.innerHTML = (product.colors || []).map((color, i) => '<button type="button" class="color-dot ' + (i === 0 ? 'active' : '') + '" style="background:' + color + '" data-pdp-color="' + i + '" aria-label="Select frame colour ' + (i+1) + '" aria-pressed="' + (i === 0) + '"></button>').join('');
+    setPdpColorHelp(window.pdpSelectedColor);
     const sizeOptions = document.getElementById('pdpSizeOptions'); if (sizeOptions) sizeOptions.innerHTML = ['Small','Medium','Large'].map(size => '<button type="button" class="pdp-size-option ' + (size === window.pdpSelectedSize ? 'active' : '') + '" data-pdp-size="' + size + '" aria-pressed="' + (size === window.pdpSelectedSize) + '">' + size + '</button>').join('');
     const related = document.getElementById('relatedGrid'); if (related) renderProducts(products.filter(item => item.id !== product.id).slice(0, 4), 'relatedGrid');
     document.title = product.name + ' | HEPRA Optical';
@@ -210,14 +216,15 @@
     const thumb = event.target.closest('[data-pdp-img]');
     if (thumb) { const img = document.getElementById('pdpImage'); if (img) img.src = thumb.getAttribute('data-pdp-img'); document.querySelectorAll('[data-pdp-img]').forEach(item => item.classList.toggle('active', item === thumb)); }
     const color = event.target.closest('[data-pdp-color]');
-    if (color) { document.querySelectorAll('[data-pdp-color]').forEach(item => { const active = item === color; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); }); }
+    if (color && activePdpProduct) { const idx = Number(color.getAttribute('data-pdp-color')); window.pdpSelectedColor = (activePdpProduct.colors || [])[idx] || null; document.querySelectorAll('[data-pdp-color]').forEach(item => { const active = item === color; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); }); setPdpColorHelp(window.pdpSelectedColor); }
     const size = event.target.closest('[data-pdp-size]');
     if (size) { window.pdpSelectedSize = size.getAttribute('data-pdp-size'); document.querySelectorAll('[data-pdp-size]').forEach(item => { const active = item === size; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); }); setPdpSizeHelp(window.pdpSelectedSize); }
     if ((event.target.closest('#pdpBuyRx') || event.target.closest('#pdpMobileBuyRx')) && activePdpProduct) { window.openEyeglassOrder(activePdpProduct.id); }
-    if (event.target.closest('#pdpBuyFrame') && activePdpProduct) { addToCart(activePdpProduct, {size: window.pdpSelectedSize || activePdpProduct.size}); }
+    if (event.target.closest('#pdpBuyFrame') && activePdpProduct) { addToCart(activePdpProduct, {size: window.pdpSelectedSize || activePdpProduct.size, color: window.pdpSelectedColor || activePdpProduct.colors?.[0]}); }
     if (event.target.closest('#pdpTryOn')) document.getElementById('tryOnModal')?.classList.add('open');
   });
   function setPdpSizeHelp(size) { const el = document.getElementById('pdpSizeHelp'); if (el) el.textContent = 'Selected: ' + size + ' · confirm availability'; }
+  function setPdpColorHelp(color) { const el = document.getElementById('pdpColorHelp'); if (el) el.textContent = color ? 'Selected colour: ' + color + ' · display option, confirm availability' : 'Choose a frame colour'; }
   /* ========== RENDER PRODUCTS ========== */
   function renderProducts(list, containerId) {
     const grid = document.getElementById(containerId);
@@ -323,7 +330,7 @@
   }
 
   window.openEyeglassOrder = function (id) {
-    selectedProduct = { ...(products.find(p => p.id === id) || products[0]), size: (activePdpProduct && activePdpProduct.id === id && window.pdpSelectedSize) ? window.pdpSelectedSize : (products.find(p => p.id === id) || products[0]).size };
+    selectedProduct = { ...(products.find(p => p.id === id) || products[0]), size: (activePdpProduct && activePdpProduct.id === id && window.pdpSelectedSize) ? window.pdpSelectedSize : (products.find(p => p.id === id) || products[0]).size, selectedColor: (activePdpProduct && activePdpProduct.id === id && window.pdpSelectedColor) ? window.pdpSelectedColor : ((products.find(p => p.id === id) || products[0]).colors || [])[0] || null };
     framePrice = selectedProduct.price;
     selectedLens = lensOptions[0];
     selectedMaterial = lensMaterials[0];
