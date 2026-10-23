@@ -235,7 +235,7 @@
     orderType = 'contact';
     orderStep = 1;
     selectedClType = selectedProduct.type || 'Daily';
-    selectedPack = 30;
+    selectedPack = Number.parseInt(selectedProduct.pack, 10) || 30;
     renderOrderDrawer();
     openOrderDrawer();
   };
@@ -421,10 +421,13 @@
         </div>
       `;
     } else {
+      // Build pack sizes from the product's actual base pack (e.g. 30, 6 or 2 lenses).
+      const baseQty = Number.parseInt(selectedProduct.pack, 10) || 30;
+      const basePrice = Number(selectedProduct.price) || 899;
       const packs = [
-        { qty: 30, price: selectedProduct.price || 899, label: '30 lenses' },
-        { qty: 90, price: Math.round((selectedProduct.price || 899) * 2.7), label: '90 lenses' },
-        { qty: 180, price: Math.round((selectedProduct.price || 899) * 4.8), label: '180 lenses' }
+        { qty: baseQty, price: basePrice, label: baseQty + ' lenses' },
+        { qty: baseQty * 3, price: Math.round(basePrice * 2.7), label: (baseQty * 3) + ' lenses' },
+        { qty: baseQty * 6, price: Math.round(basePrice * 4.8), label: (baseQty * 6) + ' lenses' }
       ];
       bodyHTML = `
         <p style="font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Pack Quantity</p>
@@ -505,11 +508,20 @@
   };
 
   window.completeContactOrder = function () {
-    const packPrice = selectedPack === 30 ? (selectedProduct.price || 899)
-      : selectedPack === 90 ? Math.round((selectedProduct.price || 899) * 2.7)
-      : Math.round((selectedProduct.price || 899) * 4.8);
+    const baseQty = Number.parseInt(selectedProduct.pack, 10) || 30;
+    const basePrice = Number(selectedProduct.price) || 899;
+    const packMultiplier = selectedPack === baseQty ? 1
+      : selectedPack === baseQty * 3 ? 2.7
+      : selectedPack === baseQty * 6 ? 4.8
+      : null;
+    if (packMultiplier === null) {
+      // Reject stale or unexpected selections instead of silently charging a wrong price.
+      renderOrderDrawer();
+      return;
+    }
+    const packPrice = Math.round(basePrice * packMultiplier);
     addToCart({
-      id: selectedProduct.id,
+      id: selectedProduct.id + '_pack_' + selectedPack,
       name: `${selectedProduct.name} (${selectedPack} lenses)`,
       price: packPrice,
       image: null
@@ -558,10 +570,31 @@
   }
 
   function initMobileMenu() {
-    document.getElementById('menuToggle')?.addEventListener('click', () => document.getElementById('mobileMenu')?.classList.add('open'));
-    document.getElementById('menuClose')?.addEventListener('click', () => document.getElementById('mobileMenu')?.classList.remove('open'));
-    document.getElementById('mobileMenu')?.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => document.getElementById('mobileMenu')?.classList.remove('open'));
+    const menu = document.getElementById('mobileMenu');
+    const toggle = document.getElementById('menuToggle');
+    const closeButton = document.getElementById('menuClose');
+    const setMenuOpen = (isOpen) => {
+      menu?.classList.toggle('open', isOpen);
+      toggle?.setAttribute('aria-expanded', String(isOpen));
+      if (menu) menu.setAttribute('aria-hidden', String(!isOpen));
+      document.body.classList.toggle('mobile-menu-open', isOpen);
+    };
+    toggle?.setAttribute('aria-controls', 'mobileMenu');
+    toggle?.setAttribute('aria-expanded', 'false');
+    menu?.setAttribute('aria-hidden', 'true');
+    toggle?.addEventListener('click', () => setMenuOpen(true));
+    closeButton?.addEventListener('click', () => {
+      setMenuOpen(false);
+      toggle?.focus();
+    });
+    menu?.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => setMenuOpen(false));
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && menu?.classList.contains('open')) {
+        setMenuOpen(false);
+        toggle?.focus();
+      }
     });
   }
 
