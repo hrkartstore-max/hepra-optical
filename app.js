@@ -157,7 +157,9 @@
       image: product.image,
       size: product.size,
       lens: extras.lens || null,
-      rx: extras.rx || false
+      rx: extras.rx || false,
+      rxDetails: extras.rxDetails || null,
+      rxFileName: extras.rxFileName || null
     });
     saveCart();
     closeOrderDrawer();
@@ -360,29 +362,30 @@
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             <p style="font-weight:650;margin-bottom:4px;">Upload JPG, PNG or PDF</p>
             <p style="font-size:0.75rem;color:var(--text-muted);">Our opticians will verify</p>
-            <input type="file" accept=".jpg,.jpeg,.png,.pdf" style="display:none;" id="orderRxFile" />
+            <input type="file" accept=".jpg,.jpeg,.png,.pdf" style="display:none;" id="orderRxFile" aria-label="Prescription file" />
+            <p id="rxUploadError" role="alert" hidden style="color:#b42318;font-size:.8rem;margin-top:8px;"></p>
           </div>
         </div>
         <div id="rxManualPane" style="display:none;">
           <div class="rx-eye">
             <h4>RIGHT EYE (OD)</h4>
             <div class="rx-fields">
-              <div class="form-group"><label>SPH</label><select><option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option><option>-2.00</option><option>-2.50</option><option>-3.00</option></select></div>
-              <div class="form-group"><label>CYL</label><select><option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option></select></div>
-              <div class="form-group"><label>AXIS</label><input type="number" min="0" max="180" placeholder="0–180" /></div>
+              <div class="form-group"><label>SPH</label><select data-rx-field="odSph"><option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option><option>-2.00</option><option>-2.50</option><option>-3.00</option><option>-4.00</option><option>-5.00</option><option>-6.00</option></select></div>
+              <div class="form-group"><label>CYL</label><select data-rx-field="odCyl"><option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option><option>-2.00</option><option>-2.50</option><option>-3.00</option></select></div>
+              <div class="form-group"><label>AXIS</label><input data-rx-field="odAxis" type="number" min="0" max="180" placeholder="0–180" /></div>
             </div>
           </div>
           <div class="rx-eye" style="margin-top:12px;">
             <h4>LEFT EYE (OS)</h4>
             <div class="rx-fields">
-              <div class="form-group"><label>SPH</label><select><option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option><option>-2.00</option><option>-2.50</option><option>-3.00</option></select></div>
-              <div class="form-group"><label>CYL</label><select><option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option></select></div>
-              <div class="form-group"><label>AXIS</label><input type="number" min="0" max="180" placeholder="0–180" /></div>
+              <div class="form-group"><label>SPH</label><select data-rx-field="osSph"><option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option><option>-2.00</option><option>-2.50</option><option>-3.00</option><option>-4.00</option><option>-5.00</option><option>-6.00</option></select></div>
+              <div class="form-group"><label>CYL</label><select data-rx-field="osCyl"><option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option><option>-2.00</option><option>-2.50</option><option>-3.00</option></select></div>
+              <div class="form-group"><label>AXIS</label><input data-rx-field="osAxis" type="number" min="0" max="180" placeholder="0–180" /></div>
             </div>
           </div>
           <div class="form-row two" style="margin-top:12px;">
-            <div class="form-group"><label>ADD</label><select><option>None</option><option>+1.00</option><option>+1.50</option><option>+2.00</option><option>+2.50</option></select></div>
-            <div class="form-group"><label>PD (mm)</label><input type="number" placeholder="e.g. 63" min="50" max="80" /></div>
+            <div class="form-group"><label>ADD</label><select data-rx-field="add"><option value="">None</option><option>+1.00</option><option>+1.50</option><option>+2.00</option><option>+2.50</option><option>+3.00</option></select></div>
+            <div class="form-group"><label>PD (mm)</label><input data-rx-field="pd" type="number" placeholder="e.g. 63" min="50" max="80" /></div>
           </div>
         </div>
         <div class="order-price-bar" style="margin-top:16px;">
@@ -451,20 +454,20 @@
         <div class="cl-power-grid">
           <div class="cl-power-box">
             <h5>Right Eye (OD)</h5>
-            <select style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-weight:600;">
-              <option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option><option>-2.00</option><option>-2.50</option><option>-3.00</option><option>-4.00</option><option>-5.00</option>
+            <select data-cl-power="od" aria-label="Right eye contact lens power" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-weight:600;">
+              <option>0.00</option><option>-0.50</option><option>-0.75</option><option>-1.00</option><option>-1.25</option><option>-1.50</option><option>-1.75</option><option>-2.00</option><option>-2.25</option><option>-2.50</option><option>-2.75</option><option>-3.00</option><option>-3.50</option><option>-4.00</option><option>-4.50</option><option>-5.00</option><option>-5.50</option><option>-6.00</option>
             </select>
           </div>
           <div class="cl-power-box">
             <h5>Left Eye (OS)</h5>
-            <select style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-weight:600;">
-              <option>0.00</option><option>-0.50</option><option>-1.00</option><option>-1.50</option><option>-2.00</option><option>-2.50</option><option>-3.00</option><option>-4.00</option><option>-5.00</option>
+            <select data-cl-power="os" aria-label="Left eye contact lens power" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-weight:600;">
+              <option>0.00</option><option>-0.50</option><option>-0.75</option><option>-1.00</option><option>-1.25</option><option>-1.50</option><option>-1.75</option><option>-2.00</option><option>-2.25</option><option>-2.50</option><option>-2.75</option><option>-3.00</option><option>-3.50</option><option>-4.00</option><option>-4.50</option><option>-5.00</option><option>-5.50</option><option>-6.00</option>
             </select>
           </div>
         </div>
         <div class="form-row two">
-          <div class="form-group"><label>BC</label><input type="text" value="${selectedProduct.bc || '8.6'}" /></div>
-          <div class="form-group"><label>DIA</label><input type="text" value="${selectedProduct.dia || '14.2'}" /></div>
+          <div class="form-group"><label>BC</label><input data-cl-spec="bc" type="number" min="8" max="10" step="0.1" value="${selectedProduct.bc || '8.6'}" required /></div>
+          <div class="form-group"><label>DIA</label><input data-cl-spec="dia" type="number" min="13" max="15" step="0.1" value="${selectedProduct.dia || '14.2'}" required /></div>
         </div>
       `;
     } else {
@@ -535,7 +538,9 @@
   };
 
   window.selectPack = function (qty, price) {
-    selectedPack = qty;
+    const baseQty = Number.parseInt(selectedProduct?.pack, 10) || 30;
+    if (![baseQty, baseQty * 3, baseQty * 6].includes(Number(qty))) return;
+    selectedPack = Number(qty);
     renderOrderDrawer();
   };
 
@@ -547,11 +552,29 @@
   };
 
   window.completeEyeglassOrder = function () {
-    addToCart(selectedProduct, {
-      lens: selectedLens.name,
-      lensPrice: selectedLens.price,
-      rx: true
-    });
+    const fileInput = document.getElementById('orderRxFile');
+    const file = fileInput?.files?.[0] || null;
+    const manualPane = document.getElementById('rxManualPane');
+    const manualMode = manualPane && manualPane.style.display !== 'none';
+    let rxDetails = null;
+    if (manualMode) {
+      const get = key => document.querySelector('[data-rx-field="' + key + '"]')?.value?.trim() || '';
+      const odAxis = get('odAxis'), osAxis = get('osAxis'), pd = get('pd');
+      if ((odAxis && (+odAxis < 0 || +odAxis > 180)) || (osAxis && (+osAxis < 0 || +osAxis > 180))) {
+        alert('Axis must be between 0 and 180 degrees.'); return;
+      }
+      if (pd && (+pd < 50 || +pd > 80)) { alert('PD must be between 50 and 80 mm.'); return; }
+      rxDetails = { mode:'manual', od:{ sph:get('odSph'), cyl:get('odCyl'), axis:odAxis }, os:{ sph:get('osSph'), cyl:get('osCyl'), axis:osAxis }, add:get('add'), pd };
+    } else {
+      const error = document.getElementById('rxUploadError');
+      if (!file) { if(error){error.hidden=false;error.textContent='Choose a prescription file, or select Enter Manually.';} return; }
+      if (!/^(image\/(jpeg|png)|application\/pdf)$/.test(file.type) && !/\.(jpe?g|png|pdf)$/i.test(file.name)) {
+        if(error){error.hidden=false;error.textContent='Use a JPG, PNG or PDF prescription file.';} return;
+      }
+      if (file.size > 10 * 1024 * 1024) { if(error){error.hidden=false;error.textContent='File must be 10 MB or smaller.';} return; }
+      rxDetails = { mode:'upload', fileName:file.name, fileSize:file.size, note:'File selected in this browser demo; it has not been uploaded to a server.' };
+    }
+    addToCart(selectedProduct, { lens:selectedLens.name, lensPrice:selectedLens.price, rx:true, rxDetails, rxFileName:file?.name || null });
   };
 
   window.completeContactOrder = function () {
@@ -561,18 +584,22 @@
       : selectedPack === baseQty * 3 ? 2.7
       : selectedPack === baseQty * 6 ? 4.8
       : null;
-    if (packMultiplier === null) {
-      // Reject stale or unexpected selections instead of silently charging a wrong price.
-      renderOrderDrawer();
-      return;
+    if (packMultiplier === null) { renderOrderDrawer(); return; }
+    const od = document.querySelector('[data-cl-power="od"]')?.value || '';
+    const os = document.querySelector('[data-cl-power="os"]')?.value || '';
+    const bc = document.querySelector('[data-cl-spec="bc"]')?.value || '';
+    const dia = document.querySelector('[data-cl-spec="dia"]')?.value || '';
+    if (!od || !os || !bc || !dia || Number(bc) < 8 || Number(bc) > 10 || Number(dia) < 13 || Number(dia) > 15) {
+      alert('Please check OD/OS power, BC and DIA before adding to cart.'); return;
     }
     const packPrice = Math.round(basePrice * packMultiplier);
+    const rxDetails = { type:selectedClType, od, os, bc, dia, pack:selectedPack };
     addToCart({
-      id: selectedProduct.id + '_pack_' + selectedPack,
-      name: `${selectedProduct.name} (${selectedPack} lenses)`,
+      id: selectedProduct.id + '_pack_' + selectedPack + '_' + od + '_' + os,
+      name: `${selectedProduct.name} · ${selectedClType} · OD ${od} / OS ${os} · ${selectedPack} lenses`,
       price: packPrice,
       image: null
-    });
+    }, { rx:true, rxDetails });
   };
 
   window.closeOrderDrawer = closeOrderDrawer;
