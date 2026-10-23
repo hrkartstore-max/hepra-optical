@@ -104,6 +104,25 @@ python3 -m http.server 8080
 - Cart state persists in `localStorage`.
 - All interactive flows (Rx, cart, try-on, filters, FAQ) are fully functional.
 
+## Serverless API (Vercel)
+
+The repository includes an initial Node.js serverless API:
+
+- `GET /api/health` — reports whether database configuration is present.
+- `POST /api/orders` — validates customer/address fields, re-prices known catalogue items on the server, and saves an unpaid order in MongoDB.
+- Orders are stored in the `orders` collection of the database selected by `MONGODB_DB` (defaults to `hepra_optical`).
+- The API never treats a successful order write as a successful payment. Payment status remains `unpaid`; a real payment gateway/webhook is not implemented.
+
+### Required Vercel configuration
+
+1. Create a MongoDB Atlas database and a database user with least-privilege access to the order database.
+2. In Vercel → Project → Settings → Environment Variables, add:
+   - `MONGODB_URI` — MongoDB connection URI (keep this secret; never commit it).
+   - `MONGODB_DB` — database name, for example `hepra_optical`.
+3. Redeploy and verify `/api/health` returns `200` with `databaseConfigured: true`.
+
+Do not send real customer details until access controls, privacy/retention policy, production error monitoring, rate limiting, and the checkout integration have been reviewed. The current static checkout still uses its local demo reference flow; it does **not** submit orders to this API yet. Prescription files are not uploaded by this API.
+
 ---
 
 © 2026 HEPRA Optical. Built as a premium D2C optical experience.
