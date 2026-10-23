@@ -1822,6 +1822,28 @@ body { background: #fcfbfd; color: var(--ink); }
 @media(max-width:767px){.hero{padding:38px 0 34px}.hero>.container{grid-template-columns:1fr;gap:24px}.hero-content{max-width:600px}.hero-badge{font-size:.58rem;padding:8px 11px;margin-bottom:18px}.hero h1{font-size:clamp(2.65rem,12vw,4rem);max-width:11ch}.hero-sub{font-size:.93rem;line-height:1.75;margin:18px 0 22px}.hero-ctas{display:grid;grid-template-columns:1fr 1fr;gap:9px}.hero-ctas .btn{padding:0 12px;font-size:.63rem;min-height:48px}.hero-visual{justify-self:stretch;max-width:none;padding:6px 8px 18px}.hero-image-wrap{height:clamp(300px,90vw,420px);border-radius:120px 22px 22px 22px}.hero-float-1{left:0;bottom:54px}.hero-float-2{right:0;top:32px}.hero-float{font-size:.66rem;padding:10px 12px;border-radius:12px}.home-trust-strip{padding:16px 0}.home-trust-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 12px}.trust-mark{flex-basis:34px;width:34px;height:34px;border-radius:11px}.home-trust-grid strong{font-size:.69rem}.home-trust-grid small{font-size:.62rem}.promo-banner{border-radius:20px}}
 @media(prefers-reduced-motion:reduce){.hero-image-wrap img,.cat-card,.product-card{transition:none}.hero:hover .hero-image-wrap img,.cat-card:hover,.product-card:hover{transform:none}}
 
+
+/* V11 — lifestyle campaign tiles and editorial product discovery */
+.home-edit-section{padding:clamp(48px,7vw,86px) 0;background:#fff}
+.home-edit-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:26px}
+.home-edit-heading h2{font-size:clamp(2rem,4vw,3.25rem);line-height:1.08;letter-spacing:-.06em;margin-top:7px;font-weight:800}
+.home-edit-heading p{color:#776e80;font-size:.95rem;margin-top:10px;max-width:520px}
+.home-edit-index{font-size:.7rem;letter-spacing:.16em;font-weight:800;color:#9a8ca8;white-space:nowrap;padding-bottom:7px}
+.home-lifestyle-grid{display:grid;grid-template-columns:1.18fr 1fr 1fr;gap:16px}
+.home-lifestyle-card{position:relative;display:block;isolation:isolate;min-height:350px;height:clamp(350px,38vw,480px);overflow:hidden;border-radius:22px;background:#e8e0ef;color:#fff}
+.home-lifestyle-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1);z-index:-2}
+.home-lifestyle-card:focus-visible{outline:3px solid #a58cf4;outline-offset:4px}
+.home-lifestyle-card:hover img{transform:scale(1.055)}
+.home-lifestyle-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(20,9,30,.04) 15%,rgba(20,9,30,.12) 42%,rgba(20,9,30,.78) 100%)}
+.home-lifestyle-copy{position:absolute;left:clamp(18px,2.5vw,30px);right:18px;bottom:26px;display:flex;flex-direction:column;align-items:flex-start}
+.home-lifestyle-copy small{font-size:.62rem;letter-spacing:.17em;font-weight:800;opacity:.82;margin-bottom:8px}
+.home-lifestyle-copy strong{font-size:clamp(1.7rem,2.8vw,2.55rem);line-height:1.02;letter-spacing:-.055em;font-weight:800}
+.home-lifestyle-copy>span{margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.46);width:100%;display:flex;align-items:center;justify-content:space-between;font-size:.75rem;font-weight:750}
+.home-lifestyle-copy b{font-size:1.1rem;font-weight:500;transition:transform .2s ease}
+.home-lifestyle-card:hover .home-lifestyle-copy b{transform:translate(3px,-3px)}
+@media(max-width:767px){.home-edit-section{padding:44px 0}.home-edit-heading{align-items:flex-start;margin-bottom:18px}.home-edit-heading h2{font-size:2.15rem;max-width:12ch}.home-edit-heading p{font-size:.85rem}.home-edit-index{font-size:.6rem;padding-top:5px}.home-lifestyle-grid{grid-template-columns:1fr 1fr;gap:10px}.home-lifestyle-card{height:clamp(240px,66vw,330px);min-height:0;border-radius:16px}.home-lifestyle-large{grid-column:1/-1;height:clamp(300px,92vw,400px)}.home-lifestyle-copy{left:16px;bottom:18px;right:14px}.home-lifestyle-copy strong{font-size:clamp(1.4rem,6vw,2rem)}.home-lifestyle-copy small{font-size:.53rem}.home-lifestyle-copy>span{margin-top:11px;font-size:.67rem;padding-top:9px}}
+@media(prefers-reduced-motion:reduce){.home-lifestyle-card img,.home-lifestyle-copy b{transition:none}.home-lifestyle-card:hover img{transform:none}}
+
 </style>
 </head>
 <body>
@@ -1956,6 +1978,25 @@ body { background: #fcfbfd; color: var(--ink); }
           <a href="#accessories" class="cat-card" data-page="accessories">
             <div class="cat-icon" style="font-size:1.8rem;">✨</div>
             <h3>Accessories</h3>
+          </a>
+        </div>
+      </div>
+    </section>
+    <section class="home-edit-section">
+      <div class="container">
+        <div class="home-edit-heading"><div><span class="section-label">Find your fit</span><h2>Made for your kind of day.</h2><p>From desk hours to golden-hour plans, find frames that move with you.</p></div><span class="home-edit-index">01 — 03</span></div>
+        <div class="home-lifestyle-grid">
+          <a href="#eyeglasses" data-page="eyeglasses" class="home-lifestyle-card home-lifestyle-large">
+            <img src="https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=1000&q=88&auto=format&fit=crop" alt="Everyday eyeglasses collection" loading="lazy">
+            <span class="home-lifestyle-shade"></span><span class="home-lifestyle-copy"><small>THE EVERYDAY EDIT</small><strong>Everyday icons.</strong><span>Eyeglasses <b>↗</b></span></span>
+          </a>
+          <a href="#sunglasses" data-page="sunglasses" class="home-lifestyle-card">
+            <img src="https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=900&q=88&auto=format&fit=crop" alt="Sunglasses collection" loading="lazy">
+            <span class="home-lifestyle-shade"></span><span class="home-lifestyle-copy"><small>OUT IN THE SUN</small><strong>Own the light.</strong><span>Sunglasses <b>↗</b></span></span>
+          </a>
+          <a href="#computer" data-page="computer" class="home-lifestyle-card">
+            <img src="https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=900&q=88&auto=format&fit=crop" alt="Computer eyewear collection" loading="lazy">
+            <span class="home-lifestyle-shade"></span><span class="home-lifestyle-copy"><small>FOCUS MODE</small><strong>Clear the day.</strong><span>Screen glasses <b>↗</b></span></span>
           </a>
         </div>
       </div>
