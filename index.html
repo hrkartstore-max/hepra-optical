@@ -1773,6 +1773,12 @@ body { background: #fcfbfd; color: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
   .product-card:hover, .btn-primary:hover { transform: none; }
 }
+
+.product-title-link { display:inline; color:inherit; text-align:left; font:inherit; font-weight:inherit; letter-spacing:inherit; line-height:inherit; cursor:pointer; }
+.product-title-link:hover { color:var(--primary); }
+.product-title-link:focus-visible { outline:2px solid var(--primary); outline-offset:3px; border-radius:3px; }
+.related-image-button { display:block; width:100%; height:100%; cursor:pointer; }
+.related-image-button img { width:100%; height:100%; object-fit:cover; }
 </style>
 </head>
 <body>
@@ -3058,72 +3064,89 @@ body { background: #fcfbfd; color: var(--ink); }
 
   
   window.goToProduct = function(id) {
-    const products = [
-      { id: 1, name: 'Aether Classic', price: 1499, mrp: 2499, rating: 4.8, reviews: 1248, size: 'Medium', dims: '52 □ 18 – 140', image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90', colors: ['#1a1a1a','#8B4513','#2F4F4F'], shape: 'Rectangle', material: 'Acetate', weight: '22 g', desc: 'The Aether Classic is a premium acetate frame designed for everyday comfort and refined style. Lightweight construction with spring hinges ensures a secure, all-day fit. Ideal for single vision, progressive and computer lenses. Hand-finished temples and a balanced nose bridge for Indian face shapes.', images: ['https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90','https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=90','https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&q=90','https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&q=90'] },
-      { id: 2, name: 'Nova Round', price: 1799, mrp: 2999, rating: 4.9, reviews: 892, size: 'Medium', dims: '49 □ 20 – 145', image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?w=800&q=90', colors: ['#1a1a1a','#C0C0C0'], shape: 'Round', material: 'Metal', weight: '18 g', desc: 'Nova Round brings timeless circular design in a lightweight metal build. Perfect for a modern, intellectual look. Available with blue light and progressive lens options.', images: ['https://images.unsplash.com/photo-1577803645773-f96470509666?w=800&q=90','https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90','https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=90'] },
-      { id: 3, name: 'Vertex Square', price: 1299, mrp: 2199, rating: 4.7, reviews: 654, size: 'Large', dims: '54 □ 17 – 140', image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?w=800&q=90', colors: ['#1a1a1a','#003366'], shape: 'Square', material: 'TR90', weight: '20 g', desc: 'Vertex Square is built for bold presence. Durable TR90 material, wide lens area and a confident square silhouette. Great for high-index lenses.', images: ['https://images.unsplash.com/photo-1577803645773-f96470509666?w=800&q=90','https://images.unsplash.com/photo-1582142407894-ec85a1260a46?w=800&q=90'] },
-      { id: 4, name: 'Skyline Aviator', price: 1999, mrp: 3499, rating: 4.8, reviews: 1102, size: 'Medium', dims: '58 □ 14 – 140', image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=90', colors: ['#1a1a1a','#C0C0C0'], shape: 'Aviator', material: 'Metal', weight: '24 g', desc: 'Skyline Aviator offers classic pilot styling with UV400 protection. Available as non-powered sunglasses or with prescription polarised lenses.', images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=90','https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&q=90'] },
-      { id: 5, name: 'Luxe Cat Eye', price: 1699, mrp: 2799, rating: 4.9, reviews: 487, size: 'Small', dims: '50 □ 16 – 135', image: 'https://images.unsplash.com/photo-1509695507497-903c140c43b0?w=800&q=90', colors: ['#1a1a1a','#8B4513'], shape: 'Cat Eye', material: 'Acetate', weight: '21 g', desc: 'Luxe Cat Eye elevates your look with an upswept silhouette. Premium acetate in rich tones, designed for feminine face shapes and statement style.', images: ['https://images.unsplash.com/photo-1509695507497-903c140c43b0?w=800&q=90','https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90'] },
-      { id: 6, name: 'Urban Wayfarer', price: 1399, mrp: 2299, rating: 4.6, reviews: 723, size: 'Medium', dims: '52 □ 18 – 145', image: 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&q=90', colors: ['#1a1a1a','#2F4F4F'], shape: 'Wayfarer', material: 'Acetate', weight: '23 g', desc: 'Urban Wayfarer is the everyday essential. Classic trapezoid shape, robust acetate and versatile colours that work from office to weekend.', images: ['https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&q=90','https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90'] },
-      { id: 7, name: 'Clarity Rimless', price: 2199, mrp: 3999, rating: 4.8, reviews: 312, size: 'Medium', dims: '51 □ 19 – 140', image: 'https://images.unsplash.com/photo-1625591340248-6d289f9e7f5f?w=800&q=90', colors: ['#C0C0C0'], shape: 'Rimless', material: 'Titanium', weight: '12 g', desc: 'Clarity Rimless delivers almost invisible style. Ultra-light titanium mounts and edge-polished lenses for a minimal, premium look.', images: ['https://images.unsplash.com/photo-1625591340248-6d289f9e7f5f?w=800&q=90','https://images.unsplash.com/photo-1577803645773-f96470509666?w=800&q=90'] },
-      { id: 8, name: 'Pulse Half Rim', price: 1599, mrp: 2599, rating: 4.7, reviews: 541, size: 'Medium', dims: '53 □ 17 – 140', image: 'https://images.unsplash.com/photo-1582142407894-ec85a1260a46?w=800&q=90', colors: ['#1a1a1a'], shape: 'Half Rim', material: 'Metal + TR90', weight: '19 g', desc: 'Pulse Half Rim combines a solid upper browline with an open lower rim. Lightweight, professional and ideal for progressive lenses.', images: ['https://images.unsplash.com/photo-1582142407894-ec85a1260a46?w=800&q=90','https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90'] }
-    ];
-    const p = products.find(x => x.id === id) || products[0];
-    window._currentProduct = p;
-    const off = Math.round(((p.mrp - p.price) / p.mrp) * 100);
-    document.getElementById('pdpName').textContent = p.name;
-    document.getElementById('pdpPrice').textContent = '₹' + p.price.toLocaleString('en-IN');
-    document.getElementById('pdpMrp').textContent = '₹' + p.mrp.toLocaleString('en-IN');
+    const catalogue = Array.isArray(window.HEPRA_PRODUCTS) ? window.HEPRA_PRODUCTS : [];
+    const p = catalogue.find(item => Number(item.id) === Number(id));
+    if (!p) return;
+    const fallbackShape = String(p.shape || 'frame').replace(/([a-z])([A-Z])/g, '$1 $2');
+    const detail = {
+      ...p,
+      shape: fallbackShape,
+      material: p.material || (p.category === 'kids' ? 'Lightweight frame' : p.category === 'computer' ? 'Optical frame' : p.category === 'sunglasses' ? 'Sunwear frame' : 'Optical frame'),
+      weight: p.weight || 'Confirm with store',
+      desc: p.desc || (p.category === 'sunglasses'
+        ? p.name + ' is part of the HEPRA sunglasses collection. Confirm lens protection, material and availability with the store before purchase.'
+        : p.category === 'computer'
+          ? p.name + ' is part of the HEPRA computer eyewear collection. Lens features and suitability should be confirmed before purchase.'
+          : p.category === 'kids'
+            ? p.name + ' is part of the HEPRA kids eyewear collection. Confirm fit, durability and sizing with an optician before purchase.'
+            : p.name + ' is part of the HEPRA optical frame collection. Confirm material, fit and prescription compatibility before purchase.'),
+      images: p.images && p.images.length ? p.images : [p.image]
+    };
+    window._currentProduct = detail;
+    const off = Math.round(((detail.mrp - detail.price) / detail.mrp) * 100);
+    document.getElementById('pdpName').textContent = detail.name;
+    document.getElementById('pdpPrice').textContent = '₹' + detail.price.toLocaleString('en-IN');
+    document.getElementById('pdpMrp').textContent = '₹' + detail.mrp.toLocaleString('en-IN');
     const offEl = document.getElementById('pdpOff'); if (offEl) offEl.textContent = off + '% OFF';
-    document.getElementById('pdpDims').textContent = 'Frame Size: ' + p.size + ' · ' + p.dims + ' mm · ' + (p.material || '');
-    document.getElementById('pdpImage').src = p.image;
-    document.getElementById('pdpImage').alt = p.name;
-    const rev = document.getElementById('pdpReviews'); if (rev) rev.textContent = p.rating + ' · ' + p.reviews.toLocaleString('en-IN') + ' Reviews';
-    const desc = document.getElementById('pdpDesc'); if (desc) desc.textContent = p.desc || '';
-    const mat = document.getElementById('pdpMaterial'); if (mat) mat.textContent = p.material || '—';
-    const wt = document.getElementById('pdpWeight'); if (wt) wt.textContent = p.weight || '—';
-    const fit = document.getElementById('pdpFit'); if (fit) fit.textContent = p.size || '—';
-    const shp = document.getElementById('pdpShape'); if (shp) shp.textContent = p.shape || '—';
-
-    // Colors
+    document.getElementById('pdpDims').textContent = 'Frame Size: ' + detail.size + ' · ' + detail.dims + ' mm · ' + detail.material;
+    document.getElementById('pdpImage').src = detail.image;
+    document.getElementById('pdpImage').alt = detail.name;
+    const rev = document.getElementById('pdpReviews'); if (rev) rev.textContent = detail.rating + ' · ' + detail.reviews.toLocaleString('en-IN') + ' Reviews';
+    const desc = document.getElementById('pdpDesc'); if (desc) desc.textContent = detail.desc;
+    const mat = document.getElementById('pdpMaterial'); if (mat) mat.textContent = detail.material;
+    const wt = document.getElementById('pdpWeight'); if (wt) wt.textContent = detail.weight;
+    const fit = document.getElementById('pdpFit'); if (fit) fit.textContent = detail.size || '—';
+    const shp = document.getElementById('pdpShape'); if (shp) shp.textContent = detail.shape || '—';
+    const colourHeading = document.querySelector('#pdpColors')?.parentElement;
+    if (colourHeading) colourHeading.hidden = !(detail.colors && detail.colors.length);
     const colorBox = document.getElementById('pdpColors');
     if (colorBox) {
-      colorBox.innerHTML = (p.colors || []).map((c,i) => '<span class="color-dot '+(i===0?'active':'')+'" style="background:'+c+';width:22px;height:22px;"></span>').join('');
+      colorBox.innerHTML = (detail.colors || []).map((c,i) => '<span class="color-dot '+(i===0?'active':'')+'" style="background:'+c+';width:22px;height:22px;" aria-label="Colour option '+(i+1)+'"></span>').join('');
     }
-
-    // Multi images
     const thumbs = document.getElementById('pdpThumbs');
-    const imgs = p.images || [p.image];
+    const imgs = detail.images;
     if (thumbs) {
-      thumbs.innerHTML = imgs.map((src,i) => '<button class="pdp-thumb '+(i===0?'active':'')+'" data-img="'+src+'"><img src="'+src.replace('w=800','w=120')+'" alt="" /></button>').join('');
+      thumbs.innerHTML = imgs.map((src,i) => '<button type="button" class="pdp-thumb '+(i===0?'active':'')+'" data-img="'+src+'" aria-label="View product image '+(i+1)+'"><img src="'+src.replace('w=800','w=120')+'" alt="" loading="lazy" /></button>').join('');
+      thumbs.hidden = imgs.length < 2;
       thumbs.querySelectorAll('.pdp-thumb').forEach(btn => {
         btn.addEventListener('click', () => {
           thumbs.querySelectorAll('.pdp-thumb').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          document.getElementById('pdpImage').src = btn.getAttribute('data-img');
+          const image = document.getElementById('pdpImage');
+          if (image) image.src = btn.getAttribute('data-img');
         });
       });
     }
-
-    // Related products
-    const related = products.filter(x => x.id !== p.id).slice(0, 4);
+    const lensWidth = document.getElementById('pdpLensWidth');
+    const bridge = document.getElementById('pdpBridge');
+    if (lensWidth) lensWidth.textContent = (detail.dims || '').split('□')[0].trim() || '—';
+    if (bridge) bridge.textContent = (detail.dims || '').split('□')[1]?.split('–')[0]?.trim() || '—';
+    const related = catalogue.filter(item => item.id !== detail.id && item.category === detail.category).slice(0,4);
+    const relatedItems = related.length ? related : catalogue.filter(item => item.id !== detail.id).slice(0,4);
     const relGrid = document.getElementById('relatedGrid');
     if (relGrid) {
-      relGrid.innerHTML = related.map(r => {
-        const roff = Math.round(((r.mrp - r.price) / r.mrp) * 100);
-        return '<article class="product-card" style="cursor:pointer;" onclick="goToProduct('+r.id+')"><div class="product-img-wrap"><img src="'+r.image+'" alt="'+r.name+'" loading="lazy" /></div><div class="product-info"><h3 class="product-name">'+r.name+'</h3><div class="product-price"><span class="price-current">₹'+r.price.toLocaleString('en-IN')+'</span><span class="price-mrp">₹'+r.mrp.toLocaleString('en-IN')+'</span><span class="price-off">'+roff+'% OFF</span></div></div></article>';
+      relGrid.innerHTML = relatedItems.map(item => {
+        const roff = Math.round(((item.mrp - item.price) / item.mrp) * 100);
+        return '<article class="product-card" data-id="'+item.id+'"><div class="product-img-wrap"><button type="button" class="related-image-button" onclick="goToProduct('+item.id+')" aria-label="View '+item.name+'"><img src="'+item.image+'" alt="'+item.name+'" loading="lazy" /></button></div><div class="product-info"><h3 class="product-name"><button type="button" class="product-title-link" onclick="goToProduct('+item.id+')">'+item.name+'</button></h3><div class="product-price"><span class="price-current">₹'+item.price.toLocaleString('en-IN')+'</span><span class="price-mrp">₹'+item.mrp.toLocaleString('en-IN')+'</span><span class="price-off">'+roff+'% OFF</span></div></div></article>';
       }).join('');
     }
-
     const buyRx = document.getElementById('pdpBuyRx');
     const buyFrame = document.getElementById('pdpBuyFrame');
-    if (buyRx) buyRx.onclick = () => openEyeglassOrder(p.id);
-    if (buyFrame) buyFrame.onclick = () => addFrameOnly(p.id);
+    const isContactLens = detail.category === 'contact';
+    if (buyRx) {
+      buyRx.textContent = isContactLens ? 'SELECT LENS POWER' : 'BUY WITH PRESCRIPTION';
+      buyRx.onclick = () => isContactLens ? window.openContactOrder(detail.id) : window.openEyeglassOrder(detail.id);
+    }
+    if (buyFrame) {
+      buyFrame.hidden = isContactLens;
+      buyFrame.onclick = () => window.addFrameOnly(detail.id);
+    }
     location.hash = 'product';
     document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
     document.getElementById('page-product').classList.add('active');
+    document.querySelectorAll('[data-page]').forEach(a => a.classList.remove('active'));
     window.scrollTo(0, 0);
-  };
+  };;
 
   /* SPA Router */
   function showPage(name) {
