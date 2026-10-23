@@ -82,7 +82,7 @@
               ${item.lens ? 'Lens: ' + item.lens + '<br>' : ''}
               ${item.rx ? '<span style="color:var(--success);font-weight:650;">Prescription details ✓</span>' : (item.size || '')}
               ${item.rxFileName ? '<div>File selected: ' + String(item.rxFileName).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])) + ' (not uploaded)</div>' : ''}
-              ${item.rxDetails && item.rxDetails.od && item.rxDetails.os ? '<div>OD ' + item.rxDetails.od + ' · OS ' + item.rxDetails.os + (item.rxDetails.bc ? ' · BC ' + item.rxDetails.bc : '') + (item.rxDetails.dia ? ' · DIA ' + item.rxDetails.dia : '') + '</div>' : ''}
+              ${item.rxDetails && typeof item.rxDetails.od === 'string' && typeof item.rxDetails.os === 'string' ? '<div>OD ' + item.rxDetails.od + ' · OS ' + item.rxDetails.os + (item.rxDetails.bc ? ' · BC ' + item.rxDetails.bc : '') + (item.rxDetails.dia ? ' · DIA ' + item.rxDetails.dia : '') + '</div>' : ''}
               ${item.rxDetails && item.rxDetails.mode === 'manual' ? '<div>Manual Rx entered · PD ' + (item.rxDetails.pd || 'not entered') + ' mm</div>' : ''}
             </div>
             <div class="cart-item-price">${formatPrice(item.price)} each · ${formatPrice(item.price * item.qty)}</div>
