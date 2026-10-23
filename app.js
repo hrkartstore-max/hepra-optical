@@ -172,6 +172,20 @@
     openCart();
   }
 
+  /* V13 product quick view */
+  let productQuickView = null;
+  function closeProductQuickView() { if (productQuickView) productQuickView.remove(); productQuickView = null; document.body.style.overflow = ''; document.removeEventListener('keydown', quickViewEscape); }
+  function quickViewEscape(event) { if (event.key === 'Escape') closeProductQuickView(); }
+  window.goToProduct = function(id) {
+    const p = products.find(item => item.id === Number(id)); if (!p) return; closeProductQuickView();
+    const off = p.mrp ? Math.round((p.mrp-p.price)/p.mrp*100) : 0;
+    productQuickView = document.createElement('div'); productQuickView.className = 'product-quickview-backdrop';
+    productQuickView.innerHTML = '<section class="product-quickview" role="dialog" aria-modal="true" aria-labelledby="quickviewTitle"><button class="product-quickview-close" aria-label="Close details" type="button">×</button><div class="product-quickview-image"><img src="'+p.image+'" alt="'+p.name+'"></div><div class="product-quickview-content"><span class="product-quickview-eyebrow">HEPRA OPTICAL · FRAME DETAILS</span><h2 id="quickviewTitle">'+p.name+'</h2><div class="product-quickview-rating">★★★★★ '+p.rating+' · '+Number(p.reviews||0).toLocaleString('en-IN')+' reviews</div><div class="product-quickview-price"><strong>'+formatPrice(p.price)+'</strong> <del>'+formatPrice(p.mrp)+'</del> <span>'+off+'% OFF</span></div><p class="product-quickview-description">A considered everyday frame with a versatile silhouette. Configure your lenses and prescription, or choose frame-only.</p><div class="product-quickview-specs"><div><span>Frame shape</span><strong>'+(p.shape||'Classic')+'</strong></div><div><span>Fit</span><strong>'+(p.size||'Standard')+'</strong></div><div><span>Dimensions</span><strong>'+(p.dims||'See frame details')+'</strong></div></div><div class="product-quickview-actions"><button type="button" class="btn btn-outline product-quickview-rx">CHOOSE LENSES &amp; Rx</button><button type="button" class="btn btn-primary product-quickview-frame">BUY FRAME ONLY</button></div></div></section>';
+    productQuickView.addEventListener('click', event => { if (event.target === productQuickView || event.target.closest('.product-quickview-close')) closeProductQuickView(); });
+    productQuickView.querySelector('.product-quickview-rx').addEventListener('click', () => { closeProductQuickView(); window.openEyeglassOrder(p.id); });
+    productQuickView.querySelector('.product-quickview-frame').addEventListener('click', () => { closeProductQuickView(); window.addFrameOnly(p.id); });
+    document.body.appendChild(productQuickView); document.body.style.overflow = 'hidden'; document.addEventListener('keydown', quickViewEscape); productQuickView.querySelector('.product-quickview-close').focus();
+  };
   /* ========== RENDER PRODUCTS ========== */
   function renderProducts(list, containerId) {
     const grid = document.getElementById(containerId);
