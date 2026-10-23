@@ -27,6 +27,16 @@ module.exports = async function handler(req, res) {
     let provided;
     try { provided = Buffer.from(signature, 'hex'); } catch (_) { provided = Buffer.alloc(0); }
     if (provided.length !== expected.length || !crypto.timingSafeEqual(provided, expected)) return fail(res, 400, 'Payment signature verification failed.');
+    const paymentResponse = await fetch('https://api.razorpay.com/v1/payments/' + encodeURIComponent(paymentId), {
+      headers: { Authorization: 'Basic ' + Buffer.from(credentials.keyId + ':' + credentials.keySecret).toString('base64') }
+    });
+    const gatewayPayment = await paymentResponse.json().catch(() => ({}));
+    if (!paymentResponse.ok || gatewayPayment.order_id !== orderId || gatewayPayment.amount !== order.total * 100 || gatewayPayment.currency !== 'INR') {
+      return fail(res, 400, 'Payment details do not match the saved order.');
+    }
+    if (gatewayPayment.status !== 'captured') {
+      return res.status(202).json({ ok: true, reference, paymentStatus: 'pending', status: order.status, message: 'Payment is not captured yet. The verified webhook will update the order when captured.' });
+    }
     const update = await orders.updateOne({ reference, 'razorpay.orderId': orderId, paymentStatus: { $ne: 'paid' } }, { $set: { paymentStatus: 'paid', status: 'confirmed', 'razorpay.paymentId': paymentId, 'razorpay.signatureVerifiedAt': new Date(), updatedAt: new Date() } });
     if (!update.matchedCount) {
       const latest = await orders.findOne({ reference });
