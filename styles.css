@@ -1498,3 +1498,17 @@ img { color: transparent; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+
+/* Functional wishlist, search, cart quantity and checkout polish */
+.wishlist-toggle.is-wishlisted { color: #a02055; background: #fff0f5; }
+.wishlist-toggle.is-wishlisted svg { fill: currentColor; }
+.cart-qty-controls { display:flex; align-items:center; gap:10px; margin-top:8px; }
+.cart-qty-controls button { width:32px; height:32px; border:1px solid var(--border); border-radius:8px; background:white; color:var(--primary); font-size:1.15rem; cursor:pointer; }
+.cart-qty-controls span { min-width:18px; text-align:center; font-weight:750; }
+.checkout-item { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid var(--border); }
+.checkout-item strong { white-space:nowrap; }
+.wishlist-empty { grid-column:1/-1; text-align:center; padding:36px 12px; color:var(--text-muted); }
+.search-results { position:fixed; z-index:2601; inset:120px 4vw auto; max-height:65vh; overflow:auto; padding:16px; background:white; border:1px solid var(--border); border-radius:16px; box-shadow:0 18px 60px rgba(20,10,35,.18); }
+.search-results .product-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+@media(max-width:767px) { .search-results { inset:100px 12px auto; max-height:70vh; } .search-results .product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .cart-qty-controls button { min-width:36px; min-height:36px; } }
