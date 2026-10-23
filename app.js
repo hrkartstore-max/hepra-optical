@@ -367,9 +367,17 @@
             <div class="opt-price">${l.price === 0 ? 'Included' : '+' + formatPrice(l.price)}</div>
           </div>
         `).join('')}
+        <div class="lens-configurator-group">
+          <p class="lens-configurator-heading">Lens material / index</p>
+          ${lensMaterials.map(m => '<button type="button" class="lens-configurator-option ' + (selectedMaterial.id === m.id ? 'selected' : '') + '" onclick="selectLensMaterial(\'' + m.id + '\')" aria-pressed="' + (selectedMaterial.id === m.id) + '"><span><strong>' + m.name + '</strong><small>' + m.desc + '</small></span><b>' + (m.price ? '+' + formatPrice(m.price) : 'Included') + '</b></button>').join('')}
+        </div>
+        <div class="lens-configurator-group">
+          <p class="lens-configurator-heading">Coating / treatment</p>
+          ${lensCoatings.map(c => '<button type="button" class="lens-configurator-option ' + (selectedCoating.id === c.id ? 'selected' : '') + '" onclick="selectLensCoating(\'' + c.id + '\')" aria-pressed="' + (selectedCoating.id === c.id) + '"><span><strong>' + c.name + '</strong><small>' + c.desc + '</small></span><b>' + (c.price ? '+' + formatPrice(c.price) : 'Included') + '</b></button>').join('')}
+        </div>
         <div class="order-price-bar">
-          <span>Frame + Lens</span>
-          <span class="total">${formatPrice(framePrice + selectedLens.price)}</span>
+          <span>Frame + lens package</span>
+          <span class="total">${formatPrice(framePrice + configuredLensPrice())}</span>
         </div>
       `;
     } else {
@@ -378,7 +386,7 @@
           <img src="${selectedProduct.image}" alt="" />
           <div>
             <h4>${selectedProduct.name}</h4>
-            <p>${selectedLens.name} · ${formatPrice(framePrice + selectedLens.price)}</p>
+            <p>${selectedLens.name} · ${formatPrice(framePrice + configuredLensPrice())}</p>
           </div>
         </div>
         <div class="rx-options" style="margin-bottom:16px;">
@@ -418,7 +426,7 @@
         </div>
         <div class="order-price-bar" style="margin-top:16px;">
           <span>Total</span>
-          <span class="total">${formatPrice(framePrice + selectedLens.price)}</span>
+          <span class="total">${formatPrice(framePrice + configuredLensPrice())}</span>
         </div>
       `;
     }
@@ -443,7 +451,7 @@
         ${orderStep > 1 ? `<button class="btn btn-outline" style="flex:1;" onclick="orderGoStep(${orderStep - 1})">Back</button>` : ''}
         ${orderStep < 3
           ? `<button class="btn btn-primary" style="flex:1;" onclick="orderGoStep(${orderStep + 1})">${orderStep === 1 ? 'Select Lens' : 'Add Prescription'}</button>`
-          : `<button class="btn btn-primary" style="flex:1;" onclick="completeEyeglassOrder()">Add to Cart · ${formatPrice(framePrice + selectedLens.price)}</button>`
+          : `<button class="btn btn-primary" style="flex:1;" onclick="completeEyeglassOrder()">Add to Cart · ${formatPrice(framePrice + configuredLensPrice())}</button>`
         }
       </div>
     `;
@@ -568,6 +576,8 @@
     selectedLens = lensOptions.find(l => l.id === id) || lensOptions[0];
     renderOrderDrawer();
   };
+  window.selectLensMaterial = function (id) { selectedMaterial = lensMaterials.find(item => item.id === id) || lensMaterials[0]; renderOrderDrawer(); };
+  window.selectLensCoating = function (id) { selectedCoating = lensCoatings.find(item => item.id === id) || lensCoatings[0]; renderOrderDrawer(); };
 
   window.selectClType = function (t) {
     selectedClType = t;
@@ -611,7 +621,7 @@
       if (file.size > 10 * 1024 * 1024) { if(error){error.hidden=false;error.textContent='File must be 10 MB or smaller.';} return; }
       rxDetails = { mode:'upload', fileName:file.name, fileSize:file.size, note:'File selected in this browser demo; it has not been uploaded to a server.' };
     }
-    addToCart(selectedProduct, { lens:selectedLens.name, lensId:selectedLens.id, lensPrice:selectedLens.price, rx:true, rxDetails, rxFileName:file?.name || null });
+    addToCart(selectedProduct, { lens:selectedLens.name + ' · ' + selectedMaterial.name + ' · ' + selectedCoating.name, lensId:selectedLens.id, lensPrice:configuredLensPrice(), rx:true, rxDetails, rxFileName:file?.name || null, lensMaterial:selectedMaterial.id, lensCoating:selectedCoating.id });
   };
 
   window.completeContactOrder = function () {
