@@ -825,7 +825,6 @@
         cart = [];
         saveCart();
         checkoutForm.reset();
-        updateCheckoutSummary();
         if (button) button.textContent = 'ORDER SAVED · PAYMENT NOT PROCESSED';
       } catch (error) {
         if (notice) {
@@ -834,7 +833,7 @@
         }
         if (button) button.textContent = 'RETRY ORDER SUBMISSION';
       } finally {
-        if (button) button.disabled = false;
+        if (button) button.disabled = cart.length === 0;
       }
     });;
   });
