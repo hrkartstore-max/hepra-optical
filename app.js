@@ -12,7 +12,16 @@
     { id: 5, name: 'Luxe Cat Eye', category: 'eyeglasses', shape: 'cateye', price: 1699, mrp: 2799, rating: 4.9, reviews: 487, colors: ['#1a1a1a', '#8B4513', '#FF69B4'], size: 'Small', dims: '50 □ 16 – 135', image: 'https://images.unsplash.com/photo-1509695507497-903c140c43b0?w=800&q=90', badge: 'BESTSELLER' },
     { id: 6, name: 'Urban Wayfarer', category: 'eyeglasses', shape: 'wayfarer', price: 1399, mrp: 2299, rating: 4.6, reviews: 723, colors: ['#1a1a1a', '#2F4F4F', '#4A3728'], size: 'Medium', dims: '52 □ 18 – 145', image: 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&q=90', badge: null },
     { id: 7, name: 'Clarity Rimless', category: 'eyeglasses', shape: 'rimless', price: 2199, mrp: 3999, rating: 4.8, reviews: 312, colors: ['#C0C0C0', '#1a1a1a'], size: 'Medium', dims: '51 □ 19 – 140', image: 'https://images.unsplash.com/photo-1625591340248-6d289f9e7f5f?w=800&q=90', badge: 'PREMIUM' },
-    { id: 8, name: 'Pulse Half Rim', category: 'eyeglasses', shape: 'halfrim', price: 1599, mrp: 2599, rating: 4.7, reviews: 541, colors: ['#1a1a1a', '#003366'], size: 'Medium', dims: '53 □ 17 – 140', image: 'https://images.unsplash.com/photo-1582142407894-ec85a1260a46?w=800&q=90', badge: null }
+    { id: 8, name: 'Pulse Half Rim', category: 'eyeglasses', shape: 'halfrim', price: 1599, mrp: 2599, rating: 4.7, reviews: 541, colors: ['#1a1a1a', '#003366'], size: 'Medium', dims: '53 □ 17 – 140', image: 'https://images.unsplash.com/photo-1582142407894-ec85a1260a46?w=800&q=90', badge: null },
+    { id: 9, name: 'Coastline Polarized', category: 'sunglasses', shape: 'wayfarer', price: 1799, mrp: 2999, rating: 4.7, reviews: 286, colors: ['#1a1a1a', '#5a3825'], size: 'Medium', dims: '54 □ 18 – 145', image: 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&q=90', badge: 'UV PROTECTION' },
+    { id: 10, name: 'Solstice Round', category: 'sunglasses', shape: 'round', price: 1599, mrp: 2699, rating: 4.6, reviews: 194, colors: ['#1a1a1a', '#C0C0C0'], size: 'Small', dims: '50 □ 20 – 140', image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=90&sat=-15', badge: null },
+    { id: 11, name: 'Metro Shield', category: 'sunglasses', shape: 'square', price: 1899, mrp: 3199, rating: 4.8, reviews: 231, colors: ['#1a1a1a', '#2F4F4F'], size: 'Large', dims: '56 □ 17 – 145', image: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&q=90', badge: 'NEW' },
+    { id: 12, name: 'ScreenEase Pro', category: 'computer', shape: 'rectangle', price: 1499, mrp: 2499, rating: 4.8, reviews: 318, colors: ['#1a1a1a', '#003366'], size: 'Medium', dims: '52 □ 18 – 140', image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?w=800&q=90', badge: 'BLUE LIGHT' },
+    { id: 13, name: 'Focus Lite', category: 'computer', shape: 'round', price: 1299, mrp: 2199, rating: 4.7, reviews: 172, colors: ['#1a1a1a', '#8B4513'], size: 'Small', dims: '49 □ 20 – 140', image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90', badge: null },
+    { id: 14, name: 'Digital Comfort', category: 'computer', shape: 'square', price: 1699, mrp: 2799, rating: 4.8, reviews: 204, colors: ['#1a1a1a', '#4A3728'], size: 'Large', dims: '54 □ 17 – 145', image: 'https://images.unsplash.com/photo-1582142407894-ec85a1260a46?w=800&q=90', badge: 'SCREEN READY' },
+    { id: 15, name: 'Little Explorer', category: 'kids', shape: 'rectangle', price: 999, mrp: 1699, rating: 4.7, reviews: 143, colors: ['#003366', '#FF69B4'], size: 'Small', dims: '46 □ 16 – 130', image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?w=800&q=90', badge: 'KIDS' },
+    { id: 16, name: 'Junior Flex', category: 'kids', shape: 'round', price: 1099, mrp: 1799, rating: 4.8, reviews: 117, colors: ['#2F4F4F', '#8B4513'], size: 'Small', dims: '45 □ 16 – 130', image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90', badge: null },
+    { id: 17, name: 'Playday Colour', category: 'kids', shape: 'square', price: 899, mrp: 1499, rating: 4.6, reviews: 96, colors: ['#FF69B4', '#003366'], size: 'Small', dims: '44 □ 15 – 125', image: 'https://images.unsplash.com/photo-1582142407894-ec85a1260a46?w=800&q=90', badge: 'VALUE' }
   ];
 
   const contactLenses = [
@@ -698,10 +707,7 @@
       page.querySelectorAll('.shape-chip').forEach(c => c.classList.toggle('active', c === chip));
       const category = page.id.replace('page-', ''), shape = chip.dataset.shape || 'all';
       let base = products;
-      if (category === 'eyeglasses') base = products.filter(p => p.category === 'eyeglasses');
-      else if (category === 'sunglasses') base = products.filter(p => p.category === 'sunglasses');
-      else if (category === 'computer') base = products.filter(p => p.category === 'computer' || p.category === 'eyeglasses');
-      else if (category === 'kids') base = products.filter(p => p.category === 'kids' || p.category === 'eyeglasses');
+      if (['eyeglasses', 'sunglasses', 'computer', 'kids'].includes(category)) base = products.filter(p => p.category === category);
       renderProducts(shape === 'all' ? base : base.filter(p => p.shape === shape), grid.id);
     });
   }
@@ -710,8 +716,8 @@
     renderProducts(products, 'productGrid');
     renderProducts(products.filter(p => p.category === 'eyeglasses'), 'eyeglassesGrid');
     renderProducts(products.filter(p => p.category === 'sunglasses'), 'sunglassesGrid');
-    renderProducts(products.filter(p => p.category === 'computer' || p.category === 'eyeglasses'), 'computerGrid');
-    renderProducts(products.filter(p => p.category === 'kids' || p.category === 'eyeglasses'), 'kidsGrid');
+    renderProducts(products.filter(p => p.category === 'computer'), 'computerGrid');
+    renderProducts(products.filter(p => p.category === 'kids'), 'kidsGrid');
     renderContactLenses();
     updateWishlistUI();
     updateCartUI();
