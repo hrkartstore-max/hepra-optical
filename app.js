@@ -200,6 +200,7 @@
             </div>
           </div>
           <div class="product-info">
+            <div class="product-card-kicker"><span>HEPRA EDIT</span><span class="product-card-id">NO. ${String(p.id).padStart(2, '0')}</span></div>
             <h3 class="product-name"><button type="button" class="product-title-link" onclick="goToProduct(${p.id})">${p.name}</button></h3>
             <div class="product-rating">
               <span class="stars">${'★'.repeat(Math.floor(p.rating))}${'☆'.repeat(5 - Math.floor(p.rating))}</span>
@@ -208,7 +209,7 @@
             <div class="product-price">
               <span class="price-current">${formatPrice(p.price)}</span>
               <span class="price-mrp">${formatPrice(p.mrp)}</span>
-              <span class="price-off">${off}% OFF</span>
+              <span class="price-off"><span aria-hidden="true">↓</span> ${off}% OFF</span>
             </div>
             <div class="product-meta">
               <div class="color-dots">
@@ -217,8 +218,8 @@
               <span class="frame-size-label">${p.size} · ${p.dims}</span>
             </div>
             <div class="product-cta-row">
-              <button class="btn btn-sm btn-outline" onclick="openEyeglassOrder(${p.id})">BUY WITH Rx</button>
-              <button class="btn btn-sm btn-primary" onclick="addFrameOnly(${p.id})">FRAME ONLY</button>
+              <button class="btn btn-sm btn-outline" aria-label="Choose lenses and prescription for ${p.name}" onclick="openEyeglassOrder(${p.id})">WITH PRESCRIPTION <span aria-hidden="true">↗</span></button>
+              <button class="btn btn-sm btn-primary" aria-label="Buy ${p.name} frame only" onclick="addFrameOnly(${p.id})">FRAME ONLY</button>
             </div>
           </div>
         </article>
