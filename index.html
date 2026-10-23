@@ -1779,6 +1779,49 @@ body { background: #fcfbfd; color: var(--ink); }
 .product-title-link:focus-visible { outline:2px solid var(--primary); outline-offset:3px; border-radius:3px; }
 .related-image-button { display:block; width:100%; height:100%; cursor:pointer; }
 .related-image-button img { width:100%; height:100%; object-fit:cover; }
+
+/* V10 — editorial premium homepage refresh */
+.hero{position:relative;overflow:hidden;padding:clamp(42px,6vw,86px) 0 clamp(44px,5vw,76px);background:radial-gradient(ellipse at 78% 42%,rgba(165,140,244,.24),transparent 34%),linear-gradient(125deg,#fbf9fe 0%,#f4effa 48%,#fff 100%);}
+.hero:before{content:"";position:absolute;width:440px;height:440px;border:1px solid rgba(64,3,120,.09);border-radius:50%;right:-150px;top:-210px;pointer-events:none}
+.hero>.container{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.88fr);align-items:center;gap:clamp(28px,5vw,80px);position:relative}
+.hero-content{max-width:660px;position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(64,3,120,.15);background:rgba(255,255,255,.72);padding:9px 13px;border-radius:999px;font-size:.65rem;letter-spacing:.13em;font-weight:800;color:var(--primary);margin-bottom:22px}
+.hero-badge-dot{width:7px;height:7px;border-radius:50%;background:#a58cf4;box-shadow:0 0 0 4px rgba(165,140,244,.17)}
+.hero-eyebrow{font-size:.72rem;letter-spacing:.22em;font-weight:800;color:#8062a5;margin:0 0 12px}
+.hero h1{font-size:clamp(2.75rem,5.7vw,5.4rem);line-height:.99;letter-spacing:-.075em;font-weight:800;max-width:720px;text-wrap:balance}
+.hero h1 .highlight{display:inline;color:var(--primary);background:linear-gradient(100deg,#400378 10%,#8d68c8 95%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:clamp(.98rem,1.3vw,1.13rem);line-height:1.8;color:#62596d;max-width:490px;margin:23px 0 28px}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:12px}
+.hero-ctas .btn{min-height:50px;padding:0 23px;border-radius:999px;font-size:.72rem;letter-spacing:.06em;font-weight:800}
+.hero-ctas .btn-primary{box-shadow:0 12px 25px rgba(64,3,120,.2)}
+.hero-ctas .btn-secondary{background:rgba(255,255,255,.75);border:1px solid rgba(64,3,120,.18);color:var(--primary)}
+.hero-visual{position:relative;min-width:0;max-width:550px;justify-self:end;width:100%;padding:14px}
+.hero-image-wrap{height:clamp(330px,43vw,520px);border-radius:clamp(90px,15vw,190px) clamp(20px,3vw,38px) clamp(20px,3vw,38px) clamp(20px,3vw,38px);overflow:hidden;position:relative;background:#e7dff1;box-shadow:0 30px 75px rgba(50,20,78,.17)}
+.hero-image-wrap:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 58%,rgba(26,8,39,.24))}
+.hero-image-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.hero:hover .hero-image-wrap img{transform:scale(1.035)}
+.hero-float{position:absolute;z-index:2;display:flex;align-items:center;gap:8px;padding:12px 15px;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.85);border-radius:14px;box-shadow:0 12px 35px rgba(36,14,54,.12);font-size:.72rem;font-weight:800;color:#30243a;backdrop-filter:blur(12px)}
+.hero-float span{color:var(--primary);font-size:1rem}
+.hero-float-1{left:-8px;bottom:76px}.hero-float-2{right:-4px;top:54px}
+.home-trust-strip{background:#fff;border-top:1px solid #eee7f4;border-bottom:1px solid #eee7f4;padding:20px 0}
+.home-trust-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.home-trust-grid>div{display:flex;align-items:center;gap:12px;min-width:0}
+.trust-mark{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:13px;background:#f2ebfa;color:var(--primary);font-size:1.05rem;font-weight:800}
+.home-trust-grid strong,.home-trust-grid small{display:block}
+.home-trust-grid strong{font-size:.76rem;line-height:1.4;font-weight:800}
+.home-trust-grid small{font-size:.68rem;line-height:1.5;color:#81788a;margin-top:3px}
+.promo-banner{border-radius:26px;overflow:hidden;box-shadow:0 18px 55px rgba(64,3,120,.09)}
+.promo-banner-text{padding:clamp(22px,4vw,44px)}
+.promo-banner h2{letter-spacing:-.045em}
+.section-header h2{letter-spacing:-.045em}
+.cat-card{border-radius:20px;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;border:1px solid rgba(64,3,120,.07);overflow:hidden}
+.cat-card:hover{transform:translateY(-5px);box-shadow:0 16px 35px rgba(64,3,120,.1);border-color:rgba(64,3,120,.2)}
+.cat-icon-img img{transition:transform .5s ease}.cat-card:hover .cat-icon-img img{transform:scale(1.06)}
+.product-card{border-radius:18px;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease}
+.product-card:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(64,3,120,.1)}
+@media(max-width:767px){.hero{padding:38px 0 34px}.hero>.container{grid-template-columns:1fr;gap:24px}.hero-content{max-width:600px}.hero-badge{font-size:.58rem;padding:8px 11px;margin-bottom:18px}.hero h1{font-size:clamp(2.65rem,12vw,4rem);max-width:11ch}.hero-sub{font-size:.93rem;line-height:1.75;margin:18px 0 22px}.hero-ctas{display:grid;grid-template-columns:1fr 1fr;gap:9px}.hero-ctas .btn{padding:0 12px;font-size:.63rem;min-height:48px}.hero-visual{justify-self:stretch;max-width:none;padding:6px 8px 18px}.hero-image-wrap{height:clamp(300px,90vw,420px);border-radius:120px 22px 22px 22px}.hero-float-1{left:0;bottom:54px}.hero-float-2{right:0;top:32px}.hero-float{font-size:.66rem;padding:10px 12px;border-radius:12px}.home-trust-strip{padding:16px 0}.home-trust-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 12px}.trust-mark{flex-basis:34px;width:34px;height:34px;border-radius:11px}.home-trust-grid strong{font-size:.69rem}.home-trust-grid small{font-size:.62rem}.promo-banner{border-radius:20px}}
+@media(prefers-reduced-motion:reduce){.hero-image-wrap img,.cat-card,.product-card{transition:none}.hero:hover .hero-image-wrap img,.cat-card:hover,.product-card:hover{transform:none}}
+
 </style>
 </head>
 <body>
@@ -1850,23 +1893,25 @@ body { background: #fcfbfd; color: var(--ink); }
     <section class="hero">
       <div class="container">
         <div class="hero-content">
-          <div class="hero-badge">★ PREMIUM INDIAN EYEWEAR</div>
-          <h1>SEE THE WORLD <span class="highlight">DIFFERENTLY.</span></h1>
-          <p class="hero-sub">Premium eyewear designed for your vision, comfort and style. Prescription-ready frames with virtual try-on.</p>
+          <div class="hero-badge"><span class="hero-badge-dot"></span> CURATED EYEWEAR · MADE FOR YOUR EVERYDAY</div>
+          <p class="hero-eyebrow">YOUR VISION. YOUR SIGNATURE.</p><h1>Find your <span class="highlight">perfect</span> point of view.</h1>
+          <p class="hero-sub">Thoughtfully chosen frames, prescription-ready lenses and effortless everyday comfort — all in one place.</p>
           <div class="hero-ctas">
-            <a href="#eyeglasses" class="btn btn-primary" data-page="eyeglasses">SHOP EYEGLASSES</a>
-            <button class="btn btn-secondary" id="heroTryOn">TRY VIRTUALLY</button>
+            <a href="#eyeglasses" class="btn btn-primary" data-page="eyeglasses">EXPLORE EYEGLASSES</a>
+            <button class="btn btn-secondary" id="heroTryOn">FIND YOUR FRAME</button>
           </div>
         </div>
         <div class="hero-visual">
           <div class="hero-image-wrap">
             <img src="https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90" alt="Premium eyeglasses" />
           </div>
-          <div class="hero-float hero-float-1">✓ Free Shipping ₹999+</div>
-          <div class="hero-float hero-float-2">Virtual Try-On</div>
+          <div class="hero-float hero-float-1"><span>✦</span> Free shipping on ₹999+</div>
+          <div class="hero-float hero-float-2"><span>◉</span> Try frames virtually</div>
         </div>
       </div>
     </section>
+    <section class="home-trust-strip" aria-label="HEPRA shopping benefits"><div class="container home-trust-grid"><div><span class="trust-mark">✦</span><span><strong>Frames for every day</strong><small>Styles made to feel like you</small></span></div><div><span class="trust-mark">◉</span><span><strong>Prescription-ready</strong><small>Lens options that fit your needs</small></span></div><div><span class="trust-mark">↗</span><span><strong>Easy online shopping</strong><small>Simple, guided checkout</small></span></div><div><span class="trust-mark">₹</span><span><strong>Free shipping ₹999+</strong><small>Clear pricing at checkout</small></span></div></div></section>
+
     
     <section class="section" style="padding:24px 0 0;">
       <div class="container">
