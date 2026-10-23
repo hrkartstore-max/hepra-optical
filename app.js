@@ -152,17 +152,20 @@
   }
 
   function addToCart(product, extras = {}) {
+    const isContactPack = /^10[1-4]_pack_/.test(String(product.id));
     cart.push({
-      id: product.id + (extras.lens ? '_rx_' + Date.now() : ''),
+      id: String(product.id),
       name: product.name,
       price: (product.price || 0) + (extras.lensPrice || 0),
       qty: 1,
       image: product.image,
       size: product.size,
       lens: extras.lens || null,
+      lensId: extras.lensId || null,
       rx: extras.rx || false,
       rxDetails: extras.rxDetails || null,
-      rxFileName: extras.rxFileName || null
+      rxFileName: extras.rxFileName || null,
+      itemType: isContactPack ? 'contact-lens' : 'eyewear'
     });
     saveCart();
     closeOrderDrawer();
@@ -586,7 +589,7 @@
       if (file.size > 10 * 1024 * 1024) { if(error){error.hidden=false;error.textContent='File must be 10 MB or smaller.';} return; }
       rxDetails = { mode:'upload', fileName:file.name, fileSize:file.size, note:'File selected in this browser demo; it has not been uploaded to a server.' };
     }
-    addToCart(selectedProduct, { lens:selectedLens.name, lensPrice:selectedLens.price, rx:true, rxDetails, rxFileName:file?.name || null });
+    addToCart(selectedProduct, { lens:selectedLens.name, lensId:selectedLens.id, lensPrice:selectedLens.price, rx:true, rxDetails, rxFileName:file?.name || null });
   };
 
   window.completeContactOrder = function () {
@@ -772,51 +775,67 @@
     initFilters();
     document.addEventListener('click', event => { const button = event.target.closest('.wishlist-toggle'); if (button) { event.preventDefault(); toggleWishlist(button.dataset.id); } });
     const checkoutForm = document.getElementById('checkoutForm');
-    checkoutForm?.addEventListener('submit', event => {
+    checkoutForm?.addEventListener('submit', async event => {
       event.preventDefault();
       if (!cart.length) { alert('Your cart is empty. Add a product before checkout.'); return; }
       if (!checkoutForm.reportValidity()) return;
 
       const notice = document.getElementById('checkoutNotice');
-      const subtotal = cart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 1), 0);
-      const shipping = subtotal >= 999 ? 0 : 99;
-      const orderRef = 'DEMO-' + Date.now().toString(36).toUpperCase();
-      const chosenPayment = checkoutForm.querySelector('input[name="pay"]:checked');
-      const record = {
-        reference: orderRef,
-        createdAt: new Date().toISOString(),
-        status: 'demo-only',
-        subtotal,
-        shipping,
-        total: subtotal + shipping,
-        paymentMethod: chosenPayment?.value || 'not-selected',
+      const button = document.getElementById('placeOrderBtn');
+      const fields = new FormData(checkoutForm);
+      const paymentMethod = String(fields.get('pay') || '');
+      const payload = {
+        customer: {
+          fullName: String(fields.get('fullName') || '').trim(),
+          mobile: String(fields.get('mobile') || '').trim(),
+          email: String(fields.get('email') || '').trim()
+        },
+        address: {
+          line1: String(fields.get('address') || '').trim(),
+          pincode: String(fields.get('pincode') || '').trim(),
+          city: String(fields.get('city') || '').trim(),
+          state: String(fields.get('state') || '').trim()
+        },
+        paymentMethod,
         items: cart.map(item => ({
           id: String(item.id),
-          name: String(item.name || 'Product'),
           quantity: Number(item.qty) || 1,
-          unitPrice: Number(item.price) || 0,
-          rxDetails: item.rxDetails || null,
-          rxFileName: item.rxFileName || null
+          lensId: item.lensId || 'basic'
         }))
       };
 
+      if (notice) { notice.hidden = false; notice.textContent = 'Submitting order securely…'; }
+      if (button) { button.disabled = true; button.textContent = 'SUBMITTING ORDER…'; }
       try {
-        const previous = readStored('hepra_demo_orders', []);
-        const records = Array.isArray(previous) ? previous : [];
-        records.unshift(record);
-        localStorage.setItem('hepra_demo_orders', JSON.stringify(records.slice(0, 20)));
+        const response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'same-origin'
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok || !result.order?.reference) {
+          throw new Error(result.error || 'Order could not be saved. Please try again later.');
+        }
         if (notice) {
           notice.hidden = false;
-          notice.textContent = 'Demo reference ' + orderRef + ' created on this device. Total: ' + formatPrice(record.total) + '. No payment was processed, no prescription file was uploaded, and no real order was sent to HEPRA. This is not a purchase confirmation.';
+          notice.textContent = 'Order saved: ' + result.order.reference + '. Total: ' + formatPrice(result.order.total) + '. Status: ' + result.order.status + '. Payment has not been processed; this is not a payment confirmation.';
         }
-        const button = document.getElementById('placeOrderBtn');
-        if (button) button.textContent = 'CREATE ANOTHER DEMO REFERENCE';
+        // Clear cart only after the server confirms a successful database write.
+        cart = [];
+        saveCart();
+        checkoutForm.reset();
+        updateCheckoutSummary();
+        if (button) button.textContent = 'ORDER SAVED · PAYMENT NOT PROCESSED';
       } catch (error) {
         if (notice) {
           notice.hidden = false;
-          notice.textContent = 'Checkout details are valid, but this browser could not save a demo reference. No payment or order was submitted.';
+          notice.textContent = error.message || 'Order service is unavailable. Your cart has been kept.';
         }
+        if (button) button.textContent = 'RETRY ORDER SUBMISSION';
+      } finally {
+        if (button) button.disabled = false;
       }
-    });
+    });;
   });
 })();
