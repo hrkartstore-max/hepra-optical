@@ -776,8 +776,47 @@
       event.preventDefault();
       if (!cart.length) { alert('Your cart is empty. Add a product before checkout.'); return; }
       if (!checkoutForm.reportValidity()) return;
+
       const notice = document.getElementById('checkoutNotice');
-      if (notice) { notice.hidden = false; notice.textContent = 'Checkout details validated. This storefront is a demo; no payment or order has been submitted.'; }
+      const subtotal = cart.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 1), 0);
+      const shipping = subtotal >= 999 ? 0 : 99;
+      const orderRef = 'DEMO-' + Date.now().toString(36).toUpperCase();
+      const chosenPayment = checkoutForm.querySelector('input[name="pay"]:checked');
+      const record = {
+        reference: orderRef,
+        createdAt: new Date().toISOString(),
+        status: 'demo-only',
+        subtotal,
+        shipping,
+        total: subtotal + shipping,
+        paymentMethod: chosenPayment?.value || 'not-selected',
+        items: cart.map(item => ({
+          id: String(item.id),
+          name: String(item.name || 'Product'),
+          quantity: Number(item.qty) || 1,
+          unitPrice: Number(item.price) || 0,
+          rxDetails: item.rxDetails || null,
+          rxFileName: item.rxFileName || null
+        }))
+      };
+
+      try {
+        const previous = readStored('hepra_demo_orders', []);
+        const records = Array.isArray(previous) ? previous : [];
+        records.unshift(record);
+        localStorage.setItem('hepra_demo_orders', JSON.stringify(records.slice(0, 20)));
+        if (notice) {
+          notice.hidden = false;
+          notice.textContent = 'Demo reference ' + orderRef + ' created on this device. Total: ' + formatPrice(record.total) + '. No payment was processed, no prescription file was uploaded, and no real order was sent to HEPRA. This is not a purchase confirmation.';
+        }
+        const button = document.getElementById('placeOrderBtn');
+        if (button) button.textContent = 'CREATE ANOTHER DEMO REFERENCE';
+      } catch (error) {
+        if (notice) {
+          notice.hidden = false;
+          notice.textContent = 'Checkout details are valid, but this browser could not save a demo reference. No payment or order was submitted.';
+        }
+      }
     });
   });
 })();
