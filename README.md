@@ -110,8 +110,12 @@ The repository includes an initial Node.js serverless API:
 
 - `GET /api/health` — reports whether database configuration is present.
 - `POST /api/orders` — validates customer/address fields, re-prices known catalogue items on the server, and saves an unpaid order in MongoDB.
+- `POST /api/payments/create-order` — creates a Razorpay payment order for a previously saved order.
+- `POST /api/payments/verify` — validates the Razorpay signature and independently checks payment status, amount, currency, and order ID before marking an order paid.
+- `POST /api/payments/webhook` — verifies Razorpay webhook signatures against the raw request body and updates captured/failed payment states.
+- `GET /api/admin/orders` and `PATCH /api/admin/orders` — authenticated order dashboard APIs.
 - Orders are stored in the `orders` collection of the database selected by `MONGODB_DB` (defaults to `hepra_optical`).
-- The API never treats a successful order write as a successful payment. Payment status remains `unpaid`; a real payment gateway/webhook is not implemented.
+- Order creation alone never counts as payment. Online payments require Razorpay verification; COD orders remain unpaid until separately reconciled.
 
 ### Required Vercel configuration
 
@@ -119,10 +123,24 @@ The repository includes an initial Node.js serverless API:
 2. In Vercel → Project → Settings → Environment Variables, add:
    - `MONGODB_URI` — MongoDB connection URI (keep this secret; never commit it).
    - `MONGODB_DB` — database name, for example `hepra_optical`.
+   - `ADMIN_API_KEY` — a unique, high-entropy secret (at least 32 characters) for `/admin.html` and admin APIs.
+   - `RAZORPAY_KEY_ID` — Razorpay API key ID (test key first, e.g. `rzp_test_…`).
+   - `RAZORPAY_KEY_SECRET` — Razorpay API secret. Never expose this in frontend code.
+   - `RAZORPAY_WEBHOOK_SECRET` — a separate secret configured on the Razorpay webhook endpoint.
 3. Redeploy and verify `/api/health` returns `200` with `databaseConfigured: true`.
 
-Do not send real customer details until access controls, privacy/retention policy, production error monitoring, rate limiting, and the checkout integration have been reviewed. The current static checkout still uses its local demo reference flow; it does **not** submit orders to this API yet. Prescription files are not uploaded by this API.
+The checkout now creates a server-side order and opens Razorpay for non-COD methods. It only clears the cart after the server confirms a captured payment; if verification is pending or fails, the cart is retained. COD orders are saved without processing a payment. Prescription file uploads are not implemented, and prescription data is not currently stored with the order. Before production, add rate limiting, payment/order reconciliation, privacy and retention controls, monitoring, and an authenticated admin user system; the shared admin API key is a minimal private admin gate, not a full identity system.
 
 ---
 
 © 2026 HEPRA Optical. Built as a premium D2C optical experience.
+
+
+### Razorpay setup and testing
+
+1. Add the Razorpay environment variables above in Vercel, initially using **test mode** credentials.
+2. In the Razorpay dashboard, configure a webhook pointing to `https://YOUR-DOMAIN/api/payments/webhook` and subscribe to `payment.captured`, `order.paid`, and `payment.failed`. Set its secret as `RAZORPAY_WEBHOOK_SECRET` in Vercel.
+3. Redeploy after changing environment variables. Test with Razorpay's test payment methods; do not use live credentials until the full order, payment, refund, and webhook lifecycle has been tested.
+4. Visit `/api/health` to check database configuration and `/admin.html` for order management.
+
+**Important:** Razorpay checkout is not a payment guarantee by itself. The server checks the signature and retrieves the payment from Razorpay before setting `paymentStatus: paid`; the webhook independently updates captured/failed payment events. Keep secrets server-side and never mark an order paid solely because the browser says payment succeeded.
