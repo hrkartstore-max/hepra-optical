@@ -2,7 +2,6 @@ const { getDatabase } = require('../_db');
 const { requireAdmin } = require('../_admin');
 
 const ORDER_STATUSES = new Set(['pending-confirmation', 'awaiting-payment', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled']);
-const PAYMENT_STATUSES = new Set(['unpaid', 'pending', 'paid', 'failed', 'refunded']);
 
 function fail(res, status, error) {
   return res.status(status).json({ ok: false, error });
@@ -51,15 +50,11 @@ module.exports = async function handler(req, res) {
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     const reference = typeof body.reference === 'string' ? body.reference.trim().slice(0, 40) : '';
     const status = typeof body.status === 'string' ? body.status : '';
-    const paymentStatus = typeof body.paymentStatus === 'string' ? body.paymentStatus : '';
     if (!reference) return fail(res, 400, 'Order reference is required.');
     if (status && !ORDER_STATUSES.has(status)) return fail(res, 400, 'Invalid order status.');
-    if (paymentStatus && !PAYMENT_STATUSES.has(paymentStatus)) return fail(res, 400, 'Invalid payment status.');
-    if (!status && !paymentStatus) return fail(res, 400, 'Provide an order status or payment status.');
+    if (!status) return fail(res, 400, 'Order status is required. Payment status is updated only by verified payment processing.');
 
-    const update = { $set: { updatedAt: new Date() } };
-    if (status) update.$set.status = status;
-    if (paymentStatus) update.$set.paymentStatus = paymentStatus;
+    const update = { $set: { status, updatedAt: new Date() } };
     const result = await collection.updateOne({ reference }, update);
     if (!result.matchedCount) return fail(res, 404, 'Order not found.');
     return res.status(200).json({ ok: true, reference, message: 'Order updated.' });
