@@ -23,6 +23,7 @@
     { id: 16, name: 'Junior Flex', category: 'kids', shape: 'round', price: 1099, mrp: 1799, rating: 4.8, reviews: 117, colors: ['#2F4F4F', '#8B4513'], size: 'Small', dims: '45 □ 16 – 130', image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5041?w=800&q=90', badge: null },
     { id: 17, name: 'Playday Colour', category: 'kids', shape: 'square', price: 899, mrp: 1499, rating: 4.6, reviews: 96, colors: ['#FF69B4', '#003366'], size: 'Small', dims: '44 □ 15 – 125', image: 'https://images.unsplash.com/photo-1582142407894-ec85a1260a46?w=800&q=90', badge: 'VALUE' }
   ];
+  window.HEPRA_PRODUCTS = products;
 
   const contactLenses = [
     { id: 101, name: 'Daily Comfort', brand: 'HEPRA', type: 'Daily', bc: '8.6', dia: '14.2', power: '-0.50 to -10.00', pack: '30 lenses', price: 899, mrp: 1299 },
@@ -191,7 +192,7 @@
             </div>
           </div>
           <div class="product-info">
-            <h3 class="product-name">${p.name}</h3>
+            <h3 class="product-name"><button type="button" class="product-title-link" onclick="goToProduct(${p.id})">${p.name}</button></h3>
             <div class="product-rating">
               <span class="stars">${'★'.repeat(Math.floor(p.rating))}${'☆'.repeat(5 - Math.floor(p.rating))}</span>
               <span>${p.rating} · ${p.reviews.toLocaleString('en-IN')}</span>
