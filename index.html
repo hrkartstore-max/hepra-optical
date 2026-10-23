@@ -3005,15 +3005,8 @@ img { color: transparent; }
     document.getElementById('pdpTryOn')?.addEventListener('click', () => {
       document.getElementById('tryOnModal')?.classList.add('open');
     });
-    // Clone products to category grids
-    setTimeout(() => {
-      const grids = ['eyeglassesGrid','sunglassesGrid','computerGrid','kidsGrid'];
-      grids.forEach(id => {
-        const el = document.getElementById(id);
-        const src = document.getElementById('productGrid');
-        if (el && src) el.innerHTML = src.innerHTML;
-      });
-    }, 100);
+    // Category grids are rendered from their own filtered product arrays in app.js.
+    // Do not copy the homepage grid here; that overwrites category-specific results.
   });
   </script>
 </body>
