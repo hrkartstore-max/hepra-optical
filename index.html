@@ -2271,6 +2271,11 @@ body { background: #fcfbfd; color: var(--ink); }
             <div class="pdp-rating"><span class="stars">★★★★★</span> <span id="pdpReviews">4.8 · 1,248 Reviews</span></div>
             <div class="pdp-price"><span class="current" id="pdpPrice">₹1,499</span><span class="mrp" id="pdpMrp">₹2,499</span><span class="off" id="pdpOff">40% OFF</span></div>
             <div class="pdp-dims" id="pdpDims">Frame Size: Medium · 52 □ 18 – 140 mm · Acetate</div>
+            <div class="pdp-size-selector" id="pdpSizeSelector">
+              <div class="pdp-size-heading"><span>FRAME SIZE</span><span id="pdpSizeHelp">Choose your fit</span></div>
+              <div class="pdp-size-options" id="pdpSizeOptions" role="group" aria-label="Choose frame size"></div>
+            </div>
+            <div class="pdp-price-summary" id="pdpPriceSummary"><span>Frame price</span><strong id="pdpSummaryPrice">₹1,499</strong><small>Lens upgrades and prescription options are selected in the next step.</small></div>
             <div style="margin-bottom:16px;">
               <p style="font-size:0.7rem;font-weight:700;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:8px;">COLOUR</p>
               <div class="color-dots" id="pdpColors" style="gap:8px;"></div>
@@ -2306,6 +2311,10 @@ body { background: #fcfbfd; color: var(--ink); }
       </div>
 
       <!-- Related products -->
+      <div class="pdp-mobile-buybar" id="pdpMobileBuybar" aria-label="Quick purchase">
+        <div class="pdp-mobile-buybar-price"><small id="pdpMobileProductName">Aether Classic</small><strong id="pdpMobileProductPrice">₹1,499</strong></div>
+        <button type="button" class="btn btn-primary" id="pdpMobileBuyRx">Choose lenses</button>
+      </div>
       <div style="margin-top:48px;">
         <div class="section-header" style="text-align:left;margin-bottom:24px;">
           <span class="section-label">You May Also Like</span>
