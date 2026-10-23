@@ -80,7 +80,10 @@
             <h4>${item.name}</h4>
             <div class="cart-item-meta">
               ${item.lens ? 'Lens: ' + item.lens + '<br>' : ''}
-              ${item.rx ? '<span style="color:var(--success);font-weight:650;">Prescription ✓</span>' : (item.size || '')}
+              ${item.rx ? '<span style="color:var(--success);font-weight:650;">Prescription details ✓</span>' : (item.size || '')}
+              ${item.rxFileName ? '<div>File selected: ' + String(item.rxFileName).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])) + ' (not uploaded)</div>' : ''}
+              ${item.rxDetails && item.rxDetails.od && item.rxDetails.os ? '<div>OD ' + item.rxDetails.od + ' · OS ' + item.rxDetails.os + (item.rxDetails.bc ? ' · BC ' + item.rxDetails.bc : '') + (item.rxDetails.dia ? ' · DIA ' + item.rxDetails.dia : '') + '</div>' : ''}
+              ${item.rxDetails && item.rxDetails.mode === 'manual' ? '<div>Manual Rx entered · PD ' + (item.rxDetails.pd || 'not entered') + ' mm</div>' : ''}
             </div>
             <div class="cart-item-price">${formatPrice(item.price)} each · ${formatPrice(item.price * item.qty)}</div>
             <div class="cart-qty-controls"><button type="button" onclick="updateCartQty('${String(item.id).replace(/'/g, '&#39;')}', -1)" aria-label="Decrease quantity">−</button><span aria-live="polite">${item.qty}</span><button type="button" onclick="updateCartQty('${String(item.id).replace(/'/g, '&#39;')}', 1)" aria-label="Increase quantity">+</button></div>
@@ -426,9 +429,18 @@
       const zone = document.getElementById('orderUploadZone');
       if (fileInput && zone) {
         fileInput.addEventListener('change', () => {
-          if (fileInput.files.length) {
-            zone.innerHTML = `<p style="font-weight:700;color:var(--success);">✓ ${fileInput.files[0].name}</p>`;
+          const file = fileInput.files && fileInput.files[0];
+          const error = document.getElementById('rxUploadError');
+          if (error) { error.hidden = true; error.textContent = ''; }
+          if (!file) return;
+          const validType = /^(image\/(jpeg|png)|application\/pdf)$/.test(file.type) || /\.(jpe?g|png|pdf)$/i.test(file.name);
+          if (!validType || file.size > 10 * 1024 * 1024) {
+            fileInput.value = '';
+            if (error) { error.hidden = false; error.textContent = !validType ? 'Use a JPG, PNG or PDF prescription file.' : 'File must be 10 MB or smaller.'; }
+            zone.textContent = 'Choose a JPG, PNG or PDF up to 10 MB';
+            return;
           }
+          zone.textContent = '✓ ' + file.name + ' selected';
         });
       }
     }, 50);
