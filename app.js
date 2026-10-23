@@ -117,7 +117,7 @@
     if (el('freeShipText')) el('freeShipText').textContent =
       remaining > 0 ? `Add ${formatPrice(remaining)} more for FREE SHIPPING` : '🎉 You qualify for FREE SHIPPING';
     const checkoutItems = el('checkoutItems');
-    if (checkoutItems) checkoutItems.innerHTML = cart.length ? cart.map(item => '<div class="checkout-item"><span>' + item.name + ' × ' + item.qty + '</span><strong>' + formatPrice(item.price * item.qty) + '</strong></div>').join('') : '<p>Your cart is empty. Add products before checkout.</p>';
+    if (checkoutItems) checkoutItems.innerHTML = cart.length ? cart.map(item => '<div class="checkout-item"><span>' + item.name + ' × ' + item.qty + '<small style="display:block;color:var(--text-muted);margin-top:4px;">' + [item.size ? 'Size: ' + item.size : '', item.color ? 'Colour: ' + item.color : '', item.lens ? 'Lens: ' + item.lens : ''].filter(Boolean).join(' · ') + '</small></span><strong>' + formatPrice(item.price * item.qty) + '</strong></div>').join('') : '<p>Your cart is empty. Add products before checkout.</p>';
     if (el('coSubtotal')) el('coSubtotal').textContent = formatPrice(subtotal);
     if (el('coShipping')) el('coShipping').textContent = shipping === 0 ? 'FREE' : formatPrice(shipping);
     if (el('coTotal')) el('coTotal').textContent = formatPrice(total);
@@ -170,6 +170,8 @@
       color: selectedColor,
       lens: extras.lens || null,
       lensId: extras.lensId || null,
+      lensMaterial: extras.lensMaterial || 'standard',
+      lensCoating: extras.lensCoating || 'none',
       rx: extras.rx || false,
       rxDetails: extras.rxDetails || null,
       rxFileName: extras.rxFileName || null,
@@ -886,7 +888,11 @@
         items: cart.map(item => ({
           id: String(item.id),
           quantity: Number(item.qty) || 1,
-          lensId: item.lensId || 'basic'
+          lensId: item.lensId || 'basic',
+          lensMaterial: item.lensMaterial || 'standard',
+          lensCoating: item.lensCoating || 'none',
+          size: item.size || '',
+          color: item.color || ''
         }))
       };
 
