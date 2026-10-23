@@ -30,7 +30,9 @@
     { id: 'progressive', name: 'Progressive', desc: 'Distance + Intermediate + Near · Seamless vision', price: 2499, tag: 'PREMIUM' }
   ];
 
-  let cart = JSON.parse(localStorage.getItem('hepra_cart') || '[]');
+  const readStored = (key, fallback) => { try { const value = JSON.parse(localStorage.getItem(key) || 'null'); return value == null ? fallback : value; } catch (_) { return fallback; } };
+  let cart = readStored('hepra_cart', []);
+  let wishlist = new Set(readStored('hepra_wishlist', []).map(String));
   let orderStep = 1;
   let orderType = 'eyeglasses'; // eyeglasses | contact
   let selectedProduct = null;
@@ -70,9 +72,10 @@
               ${item.lens ? 'Lens: ' + item.lens + '<br>' : ''}
               ${item.rx ? '<span style="color:var(--success);font-weight:650;">Prescription ✓</span>' : (item.size || '')}
             </div>
-            <div class="cart-item-price">${formatPrice(item.price)} × ${item.qty}</div>
+            <div class="cart-item-price">${formatPrice(item.price)} each · ${formatPrice(item.price * item.qty)}</div>
+            <div class="cart-qty-controls"><button type="button" onclick="updateCartQty('${String(item.id).replace(/'/g, '&#39;')}', -1)" aria-label="Decrease quantity">−</button><span aria-live="polite">${item.qty}</span><button type="button" onclick="updateCartQty('${String(item.id).replace(/'/g, '&#39;')}', 1)" aria-label="Increase quantity">+</button></div>
           </div>
-          <button class="icon-btn" onclick="removeFromCart('${item.id}')" aria-label="Remove">
+          <button class="icon-btn" onclick="removeFromCart('${String(item.id).replace(/'/g, '&#39;')}')" aria-label="Remove">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </div>
@@ -94,12 +97,46 @@
     if (el('freeShipBar')) el('freeShipBar').style.width = pct + '%';
     if (el('freeShipText')) el('freeShipText').textContent =
       remaining > 0 ? `Add ${formatPrice(remaining)} more for FREE SHIPPING` : '🎉 You qualify for FREE SHIPPING';
+    const checkoutItems = el('checkoutItems');
+    if (checkoutItems) checkoutItems.innerHTML = cart.length ? cart.map(item => '<div class="checkout-item"><span>' + item.name + ' × ' + item.qty + '</span><strong>' + formatPrice(item.price * item.qty) + '</strong></div>').join('') : '<p>Your cart is empty. Add products before checkout.</p>';
+    if (el('coSubtotal')) el('coSubtotal').textContent = formatPrice(subtotal);
+    if (el('coShipping')) el('coShipping').textContent = shipping === 0 ? 'FREE' : formatPrice(shipping);
+    if (el('coTotal')) el('coTotal').textContent = formatPrice(total);
+    const placeOrder = el('placeOrderBtn');
+    if (placeOrder) placeOrder.disabled = cart.length === 0;
   }
 
   window.removeFromCart = function (id) {
     cart = cart.filter(i => String(i.id) !== String(id));
     saveCart();
   };
+  window.updateCartQty = function (id, delta) {
+    const item = cart.find(i => String(i.id) === String(id));
+    if (!item) return;
+    item.qty = Math.max(1, Math.min(99, Number(item.qty || 1) + Number(delta || 0)));
+    saveCart();
+  };
+  function updateWishlistUI() {
+    const count = document.getElementById('wishlistCount');
+    if (count) count.textContent = wishlist.size;
+    const grid = document.getElementById('wishlistGrid');
+    if (!grid) return;
+    const saved = products.filter(p => wishlist.has(String(p.id)));
+    if (!saved.length) { grid.innerHTML = '<p class="wishlist-empty">Your wishlist is empty. Save frames you love and they will appear here.</p>'; return; }
+    renderProducts(saved, 'wishlistGrid');
+  }
+  function toggleWishlist(id) {
+    const key = String(id);
+    if (wishlist.has(key)) wishlist.delete(key); else wishlist.add(key);
+    try { localStorage.setItem('hepra_wishlist', JSON.stringify([...wishlist])); } catch (_) {}
+    updateWishlistUI();
+    document.querySelectorAll('.wishlist-toggle[data-id="' + key + '"]').forEach(button => {
+      const saved = wishlist.has(key);
+      button.classList.toggle('is-wishlisted', saved);
+      button.setAttribute('aria-pressed', String(saved));
+      button.setAttribute('aria-label', saved ? 'Remove from wishlist' : 'Add to wishlist');
+    });
+  }
 
   function addToCart(product, extras = {}) {
     cart.push({
@@ -132,7 +169,7 @@
               ${p.badge ? `<span class="badge-tag ${p.badge === 'SALE' ? 'sale' : p.badge === 'NEW' ? 'new' : ''}">${p.badge}</span>` : ''}
             </div>
             <div class="product-actions">
-              <button class="p-action" aria-label="Wishlist" title="Wishlist">
+              <button class="p-action wishlist-toggle ${wishlist.has(String(p.id)) ? 'is-wishlisted' : ''}" data-id="${p.id}" aria-label="${wishlist.has(String(p.id)) ? 'Remove from wishlist' : 'Add to wishlist'}" aria-pressed="${wishlist.has(String(p.id)) ? 'true' : 'false'}" title="Wishlist">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
               </button>
               <button class="p-action try-on-btn" data-id="${p.id}" aria-label="Try On" title="Virtual Try-On">
@@ -599,13 +636,18 @@
   }
 
   function initSearch() {
-    document.getElementById('searchBtn')?.addEventListener('click', () => {
-      document.getElementById('searchOverlay')?.classList.add('open');
-      document.getElementById('searchInput')?.focus();
+    const overlay = document.getElementById('searchOverlay'), input = document.getElementById('searchInput');
+    document.getElementById('searchBtn')?.addEventListener('click', () => { overlay?.classList.add('open'); input?.focus(); });
+    input?.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase();
+      const matches = products.filter(p => [p.name,p.category,p.shape,p.size,p.dims].join(' ').toLowerCase().includes(q));
+      const grid = document.getElementById('searchResultsGrid'), results = document.getElementById('searchResults'), empty = document.getElementById('searchEmpty');
+      if (grid) renderProducts(q ? matches : [], 'searchResultsGrid');
+      if (results) results.hidden = !q;
+      if (empty) { empty.hidden = !q || matches.length > 0; empty.textContent = 'No frames found. Try another name or frame shape.'; }
     });
-    document.getElementById('searchOverlay')?.addEventListener('click', (e) => {
-      if (e.target.id === 'searchOverlay') e.target.classList.remove('open');
-    });
+    input?.addEventListener('keydown', e => { if (e.key === 'Escape') overlay?.classList.remove('open'); if (e.key === 'Enter' && input.value.trim()) { overlay?.classList.remove('open'); location.hash = 'eyeglasses'; } });
+    overlay?.addEventListener('click', e => { if (e.target.id === 'searchOverlay') overlay.classList.remove('open'); });
   }
 
   function initCart() {
@@ -649,26 +691,29 @@
   }
 
   function initFilters() {
-    document.querySelectorAll('.face-card').forEach(card => {
-      card.addEventListener('click', () => {
-        document.querySelectorAll('.face-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-      });
-    });
-    document.querySelectorAll('.shape-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        document.querySelectorAll('.shape-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        const shape = chip.dataset.shape;
-        const filtered = shape === 'all' ? products : products.filter(p => p.shape === shape);
-        renderProducts(filtered.length ? filtered : products, 'productGrid');
-      });
+    document.querySelectorAll('.face-card').forEach(card => card.addEventListener('click', () => { document.querySelectorAll('.face-card').forEach(c => c.classList.remove('active')); card.classList.add('active'); }));
+    document.addEventListener('click', event => {
+      const chip = event.target.closest('.shape-chip'); if (!chip) return;
+      const page = chip.closest('.page'), grid = page?.querySelector('.product-grid'); if (!page || !grid) return;
+      page.querySelectorAll('.shape-chip').forEach(c => c.classList.toggle('active', c === chip));
+      const category = page.id.replace('page-', ''), shape = chip.dataset.shape || 'all';
+      let base = products;
+      if (category === 'eyeglasses') base = products.filter(p => p.category === 'eyeglasses');
+      else if (category === 'sunglasses') base = products.filter(p => p.category === 'sunglasses');
+      else if (category === 'computer') base = products.filter(p => p.category === 'computer' || p.category === 'eyeglasses');
+      else if (category === 'kids') base = products.filter(p => p.category === 'kids' || p.category === 'eyeglasses');
+      renderProducts(shape === 'all' ? base : base.filter(p => p.shape === shape), grid.id);
     });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     renderProducts(products, 'productGrid');
+    renderProducts(products.filter(p => p.category === 'eyeglasses'), 'eyeglassesGrid');
+    renderProducts(products.filter(p => p.category === 'sunglasses'), 'sunglassesGrid');
+    renderProducts(products.filter(p => p.category === 'computer' || p.category === 'eyeglasses'), 'computerGrid');
+    renderProducts(products.filter(p => p.category === 'kids' || p.category === 'eyeglasses'), 'kidsGrid');
     renderContactLenses();
+    updateWishlistUI();
     updateCartUI();
     initAnnouncement();
     initHeader();
@@ -679,5 +724,14 @@
     initFAQ();
     initEyeTest();
     initFilters();
+    document.addEventListener('click', event => { const button = event.target.closest('.wishlist-toggle'); if (button) { event.preventDefault(); toggleWishlist(button.dataset.id); } });
+    const checkoutForm = document.getElementById('checkoutForm');
+    checkoutForm?.addEventListener('submit', event => {
+      event.preventDefault();
+      if (!cart.length) { alert('Your cart is empty. Add a product before checkout.'); return; }
+      if (!checkoutForm.reportValidity()) return;
+      const notice = document.getElementById('checkoutNotice');
+      if (notice) { notice.hidden = false; notice.textContent = 'Checkout details validated. This storefront is a demo; no payment or order has been submitted.'; }
+    });
   });
 })();
