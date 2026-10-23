@@ -3248,10 +3248,14 @@ body { background: #fcfbfd; color: var(--ink); }
 
 
   
+  const appProductDetailFallback = window.goToProduct;
   window.goToProduct = function(id) {
     const catalogue = Array.isArray(window.HEPRA_PRODUCTS) ? window.HEPRA_PRODUCTS : [];
     const p = catalogue.find(item => Number(item.id) === Number(id));
-    if (!p) return;
+    if (!p) {
+      if (typeof appProductDetailFallback === 'function') return appProductDetailFallback(id);
+      return;
+    }
     const fallbackShape = String(p.shape || 'frame').replace(/([a-z])([A-Z])/g, '$1 $2');
     const detail = {
       ...p,
