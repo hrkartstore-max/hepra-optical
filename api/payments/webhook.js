@@ -9,7 +9,21 @@ module.exports = async function handler(req, res) {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
   if (!secret) return fail(res, 503, 'Payment webhook is not configured.');
   const signature = String(req.headers['x-razorpay-signature'] || '');
-  const raw = req.rawBody || req.bodyRaw || (Buffer.isBuffer(req.body) ? req.body : null);
+  let raw = req.rawBody || req.bodyRaw || (Buffer.isBuffer(req.body) ? req.body : null);
+  if (!raw && req && typeof req.on === 'function') {
+    try {
+      const chunks = [];
+      let size = 0;
+      for await (const chunk of req) {
+        size += chunk.length;
+        if (size > 1024 * 1024) return fail(res, 413, 'Webhook payload too large.');
+        chunks.push(chunk);
+      }
+      raw = Buffer.concat(chunks);
+    } catch (_) {
+      return fail(res, 400, 'Could not read raw webhook body.');
+    }
+  }
   if (!raw || !signature) return fail(res, 400, 'Raw webhook body or signature is missing.');
   const expected = crypto.createHmac('sha256', secret).update(raw).digest();
   let provided;
@@ -34,3 +48,5 @@ module.exports = async function handler(req, res) {
     return fail(res, 503, 'Webhook processing failed. Provider should retry.');
   }
 };
+
+module.exports.config = { api: { bodyParser: false } };
