@@ -27,6 +27,8 @@ const CONTACTS = {
   104: { name: 'Colour Glow', price: 499, pack: 2 }
 };
 const LENSES = { basic: 0, ar: 499, blue: 699, photo: 1499, progressive: 2499 };
+const LENS_MATERIALS = { standard: 0, thin: 700, ultrathin: 1400, premium: 2400 };
+const LENS_COATINGS = { none: 0, ar: 399, blue: 599, uv: 299 };
 const PAYMENTS = new Set(['upi', 'card', 'net-banking', 'wallet', 'cod']);
 const text = (value, max = 180) => typeof value === 'string' ? value.trim().slice(0, max) : '';
 
@@ -102,11 +104,18 @@ module.exports = async function handler(req, res) {
     const product = FRAMES[frameId];
     if (!product) return fail(res, 400, 'Cart contains an unknown product.');
     const lensId = text(item.lensId, 30) || 'basic';
+    const materialId = text(item.lensMaterial, 30) || 'standard';
+    const coatingId = text(item.lensCoating, 30) || 'none';
     if (!(lensId in LENSES)) return fail(res, 400, 'Invalid lens selection.');
+    if (!(materialId in LENS_MATERIALS) || !(coatingId in LENS_COATINGS)) return fail(res, 400, 'Invalid lens material or coating.');
+    const size = text(item.size, 20);
+    const color = text(item.color, 20);
     normalized.push({
       id: String(frameId), name: product.name, quantity,
-      unitPrice: product.price + LENSES[lensId],
-      lensId
+      unitPrice: product.price + LENSES[lensId] + LENS_MATERIALS[materialId] + LENS_COATINGS[coatingId],
+      lensId, materialId, coatingId,
+      ...(size ? { size } : {}),
+      ...(color && /^#[0-9a-fA-F]{6}$/.test(color) ? { color } : {})
     });
   }
 
