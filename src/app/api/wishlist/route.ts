@@ -1,0 +1,8 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+export const dynamic="force-dynamic";
+export async function GET(){const session=await auth();if(!session?.user?.id)return NextResponse.json({ok:false,error:"Sign in required."},{status:401});const rows=await prisma.wishlist.findMany({where:{userId:session.user.id},select:{productId:true},orderBy:{createdAt:"desc"}});return NextResponse.json({ok:true,productIds:rows.map(x=>x.productId)})}
+export async function POST(request:Request){const session=await auth();if(!session?.user?.id)return NextResponse.json({ok:false,error:"Sign in to sync your wishlist."},{status:401});const p=z.object({productId:z.string().min(1)}).safeParse(await request.json());if(!p.success)return NextResponse.json({ok:false,error:"Product ID required."},{status:400});const product=await prisma.product.findFirst({where:{id:p.data.productId,status:"ACTIVE"},select:{id:true}});if(!product)return NextResponse.json({ok:false,error:"Product not found."},{status:404});await prisma.wishlist.upsert({where:{userId_productId:{userId:session.user.id,productId:product.id}},update:{},create:{userId:session.user.id,productId:product.id}});return NextResponse.json({ok:true})}
+export async function DELETE(request:Request){const session=await auth();if(!session?.user?.id)return NextResponse.json({ok:false,error:"Sign in required."},{status:401});const p=z.object({productId:z.string().min(1)}).safeParse(await request.json());if(!p.success)return NextResponse.json({ok:false,error:"Product ID required."},{status:400});await prisma.wishlist.deleteMany({where:{userId:session.user.id,productId:p.data.productId}});return NextResponse.json({ok:true})}
