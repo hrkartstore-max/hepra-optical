@@ -87,15 +87,19 @@ module.exports = async function handler(req, res) {
       const pack = Number(contactMatch[2]);
       const od = Number(contactMatch[3]);
       const os = Number(contactMatch[4]);
+      const bc = item && item.bc !== undefined && item.bc !== null && item.bc !== '' ? Number(item.bc) : null;
+      const dia = item && item.dia !== undefined && item.dia !== null && item.dia !== '' ? Number(item.dia) : null;
       if (![product.pack, product.pack * 3, product.pack * 6].includes(pack) ||
-          !Number.isFinite(od) || !Number.isFinite(os) || od > 0 || os > 0 || od < -20 || os < -20) {
+          !Number.isFinite(od) || !Number.isFinite(os) || od > 0 || os > 0 || od < -20 || os < -20 ||
+          (bc !== null && (!Number.isFinite(bc) || bc < 8 || bc > 10)) ||
+          (dia !== null && (!Number.isFinite(dia) || dia < 13 || dia > 15))) {
         return fail(res, 400, 'Invalid contact lens pack or eye power.');
       }
       const multiplier = pack === product.pack ? 1 : pack === product.pack * 3 ? 2.7 : 4.8;
       normalized.push({
         id: rawId, name: product.name + ' (' + pack + ' lenses)', quantity,
         unitPrice: Math.round(product.price * multiplier),
-        prescription: { type: 'contact-lens', od, os, pack }
+        prescription: { type: 'contact-lens', od, os, pack, ...(bc !== null ? { bc } : {}), ...(dia !== null ? { dia } : {}) }
       });
       continue;
     }
