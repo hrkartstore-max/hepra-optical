@@ -1,0 +1,7 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { randomUUID } from "node:crypto";
+import { getAdminSession } from "@/lib/admin";
+import { prisma } from "@/lib/prisma";
+const schema=z.object({sku:z.string().max(80).optional(),name:z.string().min(1).max(100),color:z.enum(["BLACK","TORTOISE","GOLD","SILVER","TRANSPARENT","BLUE","BROWN","PINK","GREEN","OTHER"]).optional(),colorLabel:z.string().max(60).optional(),size:z.string().max(40).optional(),stock:z.number().int().min(0).max(100000),priceDelta:z.number().min(-100000).max(100000).default(0)});
+export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){const s=await getAdminSession();if(!s||s.user.role!=="ADMIN")return NextResponse.json({ok:false,error:"Administrator access required."},{status:403});const {id}=await params;const p=schema.safeParse(await request.json());if(!p.success)return NextResponse.json({ok:false,error:"Check variant fields."},{status:400});try{const d=p.data;const v=await prisma.productVariant.create({data:{productId:id,sku:d.sku||"OK-"+randomUUID().slice(0,12).toUpperCase(),name:d.name,color:d.color,colorLabel:d.colorLabel,size:d.size,stock:d.stock,priceDelta:d.priceDelta}});return NextResponse.json({ok:true,variant:{id:v.id,sku:v.sku}},{status:201})}catch{return NextResponse.json({ok:false,error:"Variant SKU already exists or product was not found."},{status:400})}}
