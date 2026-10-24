@@ -1,0 +1,8 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { getAdminSession } from "@/lib/admin";
+import { prisma } from "@/lib/prisma";
+export const dynamic="force-dynamic";
+export async function GET(){const s=await getAdminSession();if(!s)return NextResponse.json({ok:false,error:"Admin access required."},{status:403});const stores=await prisma.store.findMany({orderBy:{createdAt:"desc"},take:200});return NextResponse.json({ok:true,stores})}
+const schema=z.object({name:z.string().min(2).max(120),slug:z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),address:z.string().min(5).max(500),city:z.string().min(2).max(80),state:z.string().min(2).max(80),postalCode:z.string().regex(/^[0-9]{6}$/).optional(),phone:z.string().max(30).optional(),email:z.string().email().optional(),latitude:z.number().min(-90).max(90).optional(),longitude:z.number().min(-180).max(180).optional(),services:z.array(z.string().max(80)).max(30).default([]),active:z.boolean().default(false)});
+export async function POST(request:Request){const s=await getAdminSession();if(!s||s.user.role!=="ADMIN")return NextResponse.json({ok:false,error:"Administrator access required."},{status:403});const p=schema.safeParse(await request.json());if(!p.success)return NextResponse.json({ok:false,error:"Check the store details."},{status:400});try{const d=p.data;const store=await prisma.store.create({data:{...d,latitude:d.latitude,longitude:d.longitude}});return NextResponse.json({ok:true,store:{id:store.id,slug:store.slug}},{status:201})}catch{return NextResponse.json({ok:false,error:"Store slug already exists or store could not be saved."},{status:400})}}
