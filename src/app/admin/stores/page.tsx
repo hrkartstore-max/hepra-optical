@@ -1,1 +1,5 @@
-import {redirect} from "next/navigation";import {auth} from "@/auth";import {SiteHeader} from "@/components/site-header";import {SiteFooter} from "@/components/site-footer";import {ResourceManager} from "@/components/admin/resource-manager";export const dynamic="force-dynamic";export default async function Page(){const s=await auth();if(!s?.user?.id)return redirect("/account/sign-in?callbackUrl=%2Fadmin%2Fstores");if(!["ADMIN","STAFF"].includes(s.user.role))return redirect("/account");return <><SiteHeader/><main className="container-shell min-h-[60vh] py-10"><p className="eyebrow mb-3">LOCATIONS & APPOINTMENTS</p><h1 className="text-3xl font-semibold text-opti-navy">Stores & appointments</h1><p className="mt-2 text-sm text-slate-500">Only publish verified addresses. Appointment times remain requests until confirmed by your team.</p><div className="mt-7"><ResourceManager resource="stores"/></div></main><SiteFooter/></>}
+import { requireAdminPage } from "@/lib/admin";
+import { AdminStoresPanel } from "@/components/admin-panels";
+export const dynamic="force-dynamic";
+export const metadata={title:"Manage Stores"};
+export default async function AdminSectionPage(){await requireAdminPage();return <AdminStoresPanel/>}
