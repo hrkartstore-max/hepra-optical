@@ -108,7 +108,6 @@ async function main() {
   for (const lens of lensOptions) await prisma.lensOption.upsert({ where: { slug: lens.slug }, update: { ...lens, active: true }, create: lens });
   await prisma.coupon.upsert({ where: { code: "WELCOME10" }, update: { active: true }, create: { code: "WELCOME10", description: "Demo welcome offer — 10% off eligible orders", discountType: DiscountType.PERCENTAGE, discountValue: 10, maxDiscount: 500, minOrderValue: 999, active: true } });
   await prisma.store.upsert({ where: { slug: "optikart-demo-store" }, update: { active: false }, create: { name: "OptiKart Demo Store (sample data)", slug: "optikart-demo-store", address: "Demo location — replace with a verified store address before launch", city: "Chennai", state: "Tamil Nadu", postalCode: "600001", services: ["Eye test booking", "Frame fitting"], active: false } });
-  await prisma.appointment.createMany({ data: [], skipDuplicates: true });
   console.log(`Seed complete: ${raw.length} products, ${categories.length} categories, ${brands.length} brands, ${lensOptions.length} lens options.`);
 }
 
