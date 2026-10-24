@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { LayoutDashboard, Package, ShoppingCart, TicketPercent, FileText, Store } from "lucide-react";
+const links=[{href:"/admin",label:"Overview",icon:LayoutDashboard},{href:"/admin/products",label:"Products",icon:Package},{href:"/admin/orders",label:"Orders",icon:ShoppingCart},{href:"/admin/coupons",label:"Coupons",icon:TicketPercent},{href:"/admin/prescriptions",label:"Prescriptions",icon:FileText},{href:"/admin/stores",label:"Stores",icon:Store}];
+export default async function AdminLayout({children}:{children:React.ReactNode}){const session=await auth();if(!session?.user?.id)redirect("/account/sign-in?callbackUrl=/admin");if(session.user.role!=="ADMIN")redirect("/account");return <><SiteHeader/><main className="container-shell min-h-[65vh] py-8 sm:py-12"><div className="mb-7 flex flex-wrap items-end justify-between gap-3"><div><p className="eyebrow mb-2">OPTIKART OPERATIONS</p><h1 className="text-3xl font-semibold tracking-[-.06em] text-opti-navy">Admin workspace</h1></div><span className="rounded-full bg-opti-mint px-3 py-1.5 text-[9px] font-bold text-opti-teal">ADMIN ACCESS</span></div><nav className="mb-8 flex gap-2 overflow-x-auto border-b border-opti-line pb-3">{links.map(item=><Link key={item.href} href={item.href} className="inline-flex shrink-0 items-center gap-2 rounded-full border border-opti-line px-4 py-2.5 text-[10px] font-bold text-opti-navy transition hover:border-opti-teal hover:bg-opti-mint"><item.icon size={14}/>{item.label}</Link>)}</nav>{children}</main><SiteFooter/></>}
