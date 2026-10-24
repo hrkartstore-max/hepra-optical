@@ -1,0 +1,5 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { demoProducts } from "@/lib/catalog";
+export const dynamic="force-dynamic";
+export async function GET(request:Request){const url=new URL(request.url);const ids=(url.searchParams.get("ids")||"").split(",").filter(Boolean).slice(0,100);const q=(url.searchParams.get("q")||"").trim().slice(0,100);try{const rows=await prisma.product.findMany({where:{status:"ACTIVE",...(ids.length?{id:{in:ids}}:{}),...(q?{OR:[{name:{contains:q,mode:"insensitive"}},{description:{contains:q,mode:"insensitive"}}]}:{})},include:{brand:{select:{name:true}},category:{select:{name:true,slug:true}}},take:100,orderBy:{isBestseller:"desc"}});return NextResponse.json({ok:true,products:rows.map(p=>({...p,basePrice:String(p.basePrice),compareAtPrice:p.compareAtPrice==null?null:String(p.compareAtPrice)}))},{headers:{"Cache-Control":"public, s-maxage=60, stale-while-revalidate=300"}})}catch{const products=demoProducts.filter(p=>(!ids.length||ids.includes(p.id))&&(!q||p.name.toLowerCase().includes(q.toLowerCase())));return NextResponse.json({ok:true,products})}}
