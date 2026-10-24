@@ -1,4 +1,7 @@
 name: OptiKart CI
+concurrency:
+  group: optikart-ci-${{ github.ref }}
+  cancel-in-progress: true
 on:
   push:
     branches: [main]
@@ -7,6 +10,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     env:
       DATABASE_URL: postgresql://optikart:optikart@localhost:5432/optikart
       DIRECT_URL: postgresql://optikart:optikart@localhost:5432/optikart
