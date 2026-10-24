@@ -12,7 +12,7 @@ export const demoProducts: ProductCardData[] = [
 {id:"demo-coastline",name:"Coastline Square",slug:"coastline-square",basePrice:1899,compareAtPrice:2299,shortDescription:"A modern square frame for sunny days.",gender:"MEN",shape:"SQUARE",material:"TR90_STEEL",color:"BLUE",images:[{url:demoImages.sun,alt:"Coastline Square sunglasses"}],isNewArrival:true,brand:{name:"Northline"}},
 {id:"demo-little",name:"Little Comet",slug:"little-comet",basePrice:899,compareAtPrice:1099,shortDescription:"A colourful, lightweight frame for little faces.",gender:"KIDS",shape:"ROUND",material:"TR90_STEEL",color:"BLUE",images:[{url:demoImages.kids,alt:"Little Comet kids glasses"}],brand:{name:"Little Look"}},
 ];
-export async function getProducts(options:{category?:string;q?:string;shape?:string;gender?:string;material?:string;color?:string;brand?:string;min?:number;max?:number;sort?:string;take?:number;skip?:number}={}){
+export async function getProducts(options:{category?:string;q?:string;shape?:string;gender?:string;material?:string;color?:string;size?:string;brand?:string;min?:number;max?:number;sort?:string;take?:number;skip?:number}={}){
  try{
   const where:any={status:"ACTIVE"};
   if(options.category)where.category={slug:options.category};
@@ -21,6 +21,7 @@ export async function getProducts(options:{category?:string;q?:string;shape?:str
   if(options.gender)where.gender=options.gender.toUpperCase();
   if(options.material)where.material=options.material.toUpperCase();
   if(options.color)where.color=options.color.toUpperCase();
+  if(options.size)where.size=options.size.toUpperCase();
   if(options.brand)where.brand={slug:options.brand};
   if(options.min!==undefined||options.max!==undefined)where.basePrice={...(options.min!==undefined?{gte:options.min}:{}),...(options.max!==undefined?{lte:options.max}:{})};
   const orderBy=options.sort==="price-low"?{basePrice:"asc" as const}:options.sort==="price-high"?{basePrice:"desc" as const}:options.sort==="newest"?{createdAt:"desc" as const}:options.sort==="name"?{name:"asc" as const}:{isBestseller:"desc" as const,createdAt:"desc" as const};
