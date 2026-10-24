@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/payments/webhook.js": {
-      "includeFiles": "api/payments/webhook.js"
-    }
-  }
-}
