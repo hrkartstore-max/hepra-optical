@@ -8,22 +8,107 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum UserRole { CUSTOMER ADMIN STAFF }
-enum ProductStatus { DRAFT ACTIVE ARCHIVED }
-enum OrderStatus { PENDING CONFIRMED PROCESSING SHIPPED OUT_FOR_DELIVERY DELIVERED CANCELLED RETURN_REQUESTED RETURNED }
-enum PaymentStatus { PENDING AUTHORIZED PAID FAILED REFUNDED PARTIALLY_REFUNDED }
-enum PaymentMethod { RAZORPAY COD }
-enum AppointmentType { STORE HOME }
-enum AppointmentStatus { REQUESTED CONFIRMED COMPLETED CANCELLED }
-enum PrescriptionType { SINGLE_VISION PROGRESSIVE ZERO_POWER CONTACT_LENS }
-enum PrescriptionStatus { DRAFT SAVED VERIFIED }
-enum DiscountType { PERCENTAGE FIXED }
-enum LensCategory { FRAME_ONLY SINGLE_VISION PROGRESSIVE ZERO_POWER }
-enum LensFeature { BLUE_CUT PHOTOCHROMIC ANTI_GLARE UV_PROTECTION POLARIZED }
-enum Gender { MEN WOMEN UNISEX KIDS }
-enum FrameShape { ROUND SQUARE RECTANGLE CAT_EYE AVIATOR WAYFARER OVAL GEOMETRIC RIMLESS }
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  STAFF
+}
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURN_REQUESTED
+  RETURNED
+}
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+enum PaymentMethod {
+  RAZORPAY
+  COD
+}
+enum AppointmentType {
+  STORE
+  HOME
+}
+enum AppointmentStatus {
+  REQUESTED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+enum PrescriptionType {
+  SINGLE_VISION
+  PROGRESSIVE
+  ZERO_POWER
+  CONTACT_LENS
+}
+enum PrescriptionStatus {
+  DRAFT
+  SAVED
+  VERIFIED
+}
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+enum LensCategory {
+  FRAME_ONLY
+  SINGLE_VISION
+  PROGRESSIVE
+  ZERO_POWER
+}
+enum LensFeature {
+  BLUE_CUT
+  PHOTOCHROMIC
+  ANTI_GLARE
+  UV_PROTECTION
+  POLARIZED
+}
+enum Gender {
+  MEN
+  WOMEN
+  UNISEX
+  KIDS
+}
+enum FrameShape {
+  ROUND
+  SQUARE
+  RECTANGLE
+  CAT_EYE
+  AVIATOR
+  WAYFARER
+  OVAL
+  GEOMETRIC
+  RIMLESS
+}
 enum FrameMaterial { ACETATE METAL_TITANIUM TR90_STEEL MIXED }
-enum FrameColor { BLACK TORTOISE GOLD SILVER TRANSPARENT BLUE BROWN PINK GREEN OTHER }
+enum FrameColor {
+  BLACK
+  TORTOISE
+  GOLD
+  SILVER
+  TRANSPARENT
+  BLUE
+  BROWN
+  PINK
+  GREEN
+  OTHER
+}
 
 model User {
   id                String        @id @default(cuid())
@@ -240,6 +325,7 @@ model Prescription {
   user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   lensSelections LensSelection[]
   orderItems     OrderItem[]
+  cartItems      CartItem[]
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   @@index([userId, status, updatedAt])
@@ -268,6 +354,7 @@ model CartItem {
   cart        Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant     ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  prescription Prescription? @relation(fields: [prescriptionId], references: [id], onDelete: SetNull)
   @@unique([cartId, productId, variantId])
   @@index([cartId])
 }
