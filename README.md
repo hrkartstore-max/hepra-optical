@@ -1,146 +1,125 @@
-# HEPRA OPTICAL — Premium Eyewear E-commerce Website
+# OptiKart — Eyewear, Your Way
 
-**See Better. Look Better.**
+OptiKart is an original eyewear e-commerce application. It uses its own brand identity and does not use Lenskart trademarks, logos, or product photography.
 
-A production-ready, conversion-focused optical & eyewear e-commerce experience for the Indian market.
+## Technology
 
-## Brand
+- Next.js 15 App Router, React 19 and TypeScript
+- Tailwind CSS, Poppins typography and Lucide icons
+- PostgreSQL on Neon with Prisma ORM
+- NextAuth for Google and email sign-in (provider setup required)
+- Zustand for client-side cart and wishlist state
+- Zod for request and form validation
+- Razorpay for UPI/cards, with Cash on Delivery as a separate payment method
+- Vercel deployment
 
-- **Name:** HEPRA OPTICAL  
-- **Tagline:** See Better. Look Better.  
-- **Market:** India | Currency: ₹ INR  
-- **Primary colour:** `#400378`  
-- **Typography:** Manrope  
+## Prerequisites
 
-## Features Implemented
+- Node.js 20.9 or newer
+- npm 10+
+- A Neon PostgreSQL project
+- Google OAuth credentials if Google sign-in is enabled
+- A verified email sending provider for OTP
+- Razorpay test credentials for payment integration
 
-### Core Experience
-- Sticky header + rotating announcement bar
-- Premium full-width hero with dual CTAs
-- Horizontal category navigation (6 categories)
-- Shop by Face Shape (Oval, Round, Square, Heart, Diamond, Oblong)
-- Shop by Frame Shape filters
-- Best-sellers product grid with full product cards
-- Virtual Try-On modal (camera privacy messaging)
-- Lens Collection (8 lens types with starting prices)
-- Contact Lenses section with BC/DIA/Power specs
-- Book Eye Test (Store + Home visit)
-- Store Locator
-- Promotional offers banner
-- Why HEPRA trust cards
-- Customer reviews
-- Optical Guide (10 educational articles)
-- FAQ accordion with schema markup
-- Full footer with all required links
+## Local setup
 
-### Product Cards
-- Image, name, rating, review count
-- MRP, selling price, discount %
-- Frame colour dots, size & dimensions (52 □ 18 – 140)
-- Wishlist, Quick View, Try-On, Add to Cart
-- **BUY WITH PRESCRIPTION** and **FRAME ONLY** CTAs
+1. Clone the repository and install dependencies:
 
-### Prescription Flow (3-step guided)
-1. **Select Frame** — confirm chosen frame  
-2. **Select Lens** — Basic, Anti-Reflection, Blue Light, Photochromic, Progressive with live price summary  
-3. **Prescription** — Upload (JPG/PNG/PDF) or Enter Manually (OD/OS SPH, CYL, AXIS, ADD, PD) with tooltips  
+   ```bash
+   npm install
+   ```
 
-### Cart Drawer
-- Product details, lens & prescription status  
-- Free-shipping progress bar (₹999 threshold)  
-- Subtotal, discount, shipping, total  
+2. Create local environment variables:
 
-### Mobile UX
-- Bottom navigation: Home | Shop | Try On | Wishlist | Cart  
-- Mobile menu  
-- Responsive grids & touch-friendly controls  
+   ```bash
+   cp .env.example .env.local
+   ```
 
-### SEO & Performance
-- Homepage title & meta description  
-- Organization + FAQ JSON-LD schema  
-- Semantic HTML, lazy-loaded images  
-- Manrope via Google Fonts  
-- Accessible focus styles & reduced-motion support  
+3. In Neon, create a PostgreSQL database. Copy the pooled connection URL into `DATABASE_URL` and the direct connection URL into `DIRECT_URL`. Keep both private.
 
-## File Structure
+4. Generate the Prisma client and create the first migration:
 
-```
-hepra-optical/
-├── index.html          # Full homepage + modals
-├── css/
-│   └── styles.css      # Complete design system
-├── js/
-│   └── app.js          # Cart, Rx flow, filters, UI logic
-├── assets/             # (ready for images)
-└── README.md
-```
+   ```bash
+   npm run db:generate
+   npm run db:migrate
+   ```
 
-## How to Run
+5. Load the sample catalogue:
 
-Open `index.html` in any modern browser, or serve locally:
+   ```bash
+   npm run db:seed
+   ```
+
+   The seed creates 40 sample products, categories, brands, lens options, a demo coupon and an inactive sample store. Product photography and prices are placeholders; verify all supplier, inventory, clinical and commercial details before taking live orders.
+
+6. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+   Open http://localhost:3000.
+
+## Environment variables
+
+See `.env.example`. Never commit `.env.local`, database credentials, auth secrets, Razorpay secrets, private prescription uploads, or customer data.
+
+- `DATABASE_URL`: Neon pooled runtime URL
+- `DIRECT_URL`: Neon direct connection URL for migrations
+- `AUTH_SECRET`: long, random secret for NextAuth
+- `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`: Google OAuth credentials
+- `RESEND_API_KEY` / `EMAIL_FROM`: transactional email/OTP provider
+- `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET`: server-side payment credentials
+- `RAZORPAY_WEBHOOK_SECRET`: verify Razorpay webhooks
+- `NEXT_PUBLIC_RAZORPAY_KEY_ID`: publishable key only
+
+## Vercel deployment
+
+1. Push the repository to GitHub and import it into Vercel.
+2. Set the framework preset to Next.js and the root directory to the repository root.
+3. Add the production environment variables from `.env.example` in Vercel Project Settings. Use Neon production URLs and live Razorpay credentials only after test-mode checkout, signature verification and webhook handling have passed.
+4. Deploy. Run database migrations as a controlled release step using `npm run db:deploy` against the production database. Do not run `prisma migrate dev` in production.
+5. Run `npm run db:seed` only when you intentionally want the sample catalogue in that database. Never seed sample data into a live store without review.
+6. Verify sign-in callback URLs, email sender/domain, Razorpay webhook URL, order confirmation, cancellation, refunds, shipping/tax rules and privacy policy before launch.
+
+## Data and launch safety
+
+- The catalogue seed is demonstration data. Images are third-party Unsplash placeholders and may be replaced with owned/licensed product imagery.
+- Sample frame and lens prices are illustrative, not supplier quotes or a promise of clinical suitability.
+- Prescription data is sensitive. Restrict access to the customer and authorized staff, avoid logging prescription payloads, and use private object storage for uploads.
+- Never trust client-submitted prices. Calculate prices on the server from database records.
+- Mark orders paid only after server-side Razorpay signature verification and/or verified webhook processing. A browser callback alone is not proof of payment.
+- Admin routes must be protected by a server-side role check. Hiding admin links is not access control.
+- Obtain legal, privacy, consumer-protection and clinical review before production use.
+
+## Database
+
+The Prisma schema includes user/auth records, categories, brands, products and variants, lens options and selections, prescriptions, carts, orders and line items, addresses, coupons, reviews, wishlists, stores and appointments.
+
+## Development commands
 
 ```bash
-cd hepra-optical
-npx serve .
-# or
-python3 -m http.server 8080
+npm run dev          # local development
+npm run typecheck    # TypeScript checks
+npm run lint         # ESLint
+npm run build        # Prisma generate + Next.js production build
+npm run db:generate  # Prisma client
+npm run db:migrate   # local development migration
+npm run db:deploy    # deploy committed migrations
+npm run db:seed      # sample catalogue
+npm run db:studio    # Prisma Studio
 ```
 
-## Design System
+## Project layout
 
-| Token        | Value     |
-|-------------|-----------|
-| Primary     | `#400378` |
-| Secondary   | `#FFFFFF` |
-| Background  | `#FAF9FC` |
-| Text        | `#171717` |
-| Accent      | `#E8DDF0` |
-| Font        | Manrope   |
-
-## Notes
-
-- Product images use Unsplash placeholders (premium optical aesthetic).
-- Virtual Try-On is a simulated UI (real face-tracking would integrate a WebAR / MediaPipe solution).
-- Cart state persists in `localStorage`.
-- All interactive flows (Rx, cart, try-on, filters, FAQ) are fully functional.
-
-## Serverless API (Vercel)
-
-The repository includes an initial Node.js serverless API:
-
-- `GET /api/health` — reports whether database configuration is present.
-- `POST /api/orders` — validates customer/address fields, re-prices known catalogue items on the server, and saves an unpaid order in MongoDB.
-- `POST /api/payments/create-order` — creates a Razorpay payment order for a previously saved order.
-- `POST /api/payments/verify` — validates the Razorpay signature and independently checks payment status, amount, currency, and order ID before marking an order paid.
-- `POST /api/payments/webhook` — verifies Razorpay webhook signatures against the raw request body and updates captured/failed payment states.
-- `GET /api/admin/orders` and `PATCH /api/admin/orders` — authenticated order dashboard APIs.
-- Orders are stored in the `orders` collection of the database selected by `MONGODB_DB` (defaults to `hepra_optical`).
-- Order creation alone never counts as payment. Online payments require Razorpay verification; COD orders remain unpaid until separately reconciled.
-
-### Required Vercel configuration
-
-1. Create a MongoDB Atlas database and a database user with least-privilege access to the order database.
-2. In Vercel → Project → Settings → Environment Variables, add:
-   - `MONGODB_URI` — MongoDB connection URI (keep this secret; never commit it).
-   - `MONGODB_DB` — database name, for example `hepra_optical`.
-   - `ADMIN_API_KEY` — a unique, high-entropy secret (at least 32 characters) for `/admin.html` and admin APIs.
-   - `RAZORPAY_KEY_ID` — Razorpay API key ID (test key first, e.g. `rzp_test_…`).
-   - `RAZORPAY_KEY_SECRET` — Razorpay API secret. Never expose this in frontend code.
-   - `RAZORPAY_WEBHOOK_SECRET` — a separate secret configured on the Razorpay webhook endpoint.
-3. Redeploy and verify `/api/health` returns `200` with `databaseConfigured: true`.
-
-The checkout now creates a server-side order and opens Razorpay for non-COD methods. It only clears the cart after the server confirms a captured payment; if verification is pending or fails, the cart is retained. COD orders are saved without processing a payment. Prescription file uploads are not implemented, and prescription data is not currently stored with the order. Before production, add rate limiting, payment/order reconciliation, privacy and retention controls, monitoring, and an authenticated admin user system; the shared admin API key is a minimal private admin gate, not a full identity system.
-
----
-
-© 2026 HEPRA Optical. Built as a premium D2C optical experience.
-
-
-### Razorpay setup and testing
-
-1. Add the Razorpay environment variables above in Vercel, initially using **test mode** credentials.
-2. In the Razorpay dashboard, configure a webhook pointing to `https://YOUR-DOMAIN/api/payments/webhook` and subscribe to `payment.captured`, `order.paid`, and `payment.failed`. Set its secret as `RAZORPAY_WEBHOOK_SECRET` in Vercel.
-3. Redeploy after changing environment variables. Test with Razorpay's test payment methods; do not use live credentials until the full order, payment, refund, and webhook lifecycle has been tested.
-4. Visit `/api/health` to check database configuration and `/admin.html` for order management.
-
-**Important:** Razorpay checkout is not a payment guarantee by itself. The server checks the signature and retrieves the payment from Razorpay before setting `paymentStatus: paid`; the webhook independently updates captured/failed payment events. Keep secrets server-side and never mark an order paid solely because the browser says payment succeeded.
+```text
+src/
+  app/          Next.js App Router routes and global layout
+  components/   Reusable UI and storefront components
+  lib/          Prisma client, validation, pricing and shared utilities
+prisma/
+  schema.prisma Relational database schema
+  seed.ts       40-product sample catalogue
+.env.example    Environment variable template
+```
