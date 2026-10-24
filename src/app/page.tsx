@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Check, Eye, Glasses, MapPin, ShieldCheck, Sparkles, Sun } from "lucide-react";
+import { ArrowRight, Eye, Glasses, MapPin, ShieldCheck, Sun } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { HeroSlider } from "@/components/hero-slider";
 import { SiteFooter } from "@/components/site-footer";
