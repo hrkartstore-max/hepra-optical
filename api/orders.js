@@ -90,7 +90,7 @@ module.exports = async function handler(req, res) {
       const bc = item && item.bc !== undefined && item.bc !== null && item.bc !== '' ? Number(item.bc) : null;
       const dia = item && item.dia !== undefined && item.dia !== null && item.dia !== '' ? Number(item.dia) : null;
       if (![product.pack, product.pack * 3, product.pack * 6].includes(pack) ||
-          !Number.isFinite(od) || !Number.isFinite(os) || od > 0 || os > 0 || od < -20 || os < -20 ||
+          !Number.isFinite(od) || !Number.isFinite(os) || od > 20 || os > 20 || od < -20 || os < -20 ||
           (bc !== null && (!Number.isFinite(bc) || bc < 8 || bc > 10)) ||
           (dia !== null && (!Number.isFinite(dia) || dia < 13 || dia > 15))) {
         return fail(res, 400, 'Invalid contact lens pack or eye power.');
