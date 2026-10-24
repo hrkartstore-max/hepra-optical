@@ -1,0 +1,44 @@
+import { NextResponse } from "next/server";
+import { randomBytes } from "node:crypto";
+import Razorpay from "razorpay";
+import { z } from "zod";
+import { Prisma, PaymentMethod, PaymentStatus, OrderStatus, LensCategory } from "@prisma/client";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+
+export const runtime = "nodejs";
+const rxSchema=z.object({odSph:z.coerce.number().min(-20).max(20),odCyl:z.coerce.number().min(-8).max(8),odAxis:z.coerce.number().int().min(0).max(180),odPd:z.coerce.number().min(20).max(40),osSph:z.coerce.number().min(-20).max(20),osCyl:z.coerce.number().min(-8).max(8),osAxis:z.coerce.number().int().min(0).max(180),osPd:z.coerce.number().min(20).max(40),addPower:z.coerce.number().min(0).max(5).optional(),source:z.string().optional(),uploadName:z.string().optional()}).passthrough();
+const schema=z.object({customer:z.object({fullName:z.string().trim().min(2).max(100),email:z.string().email().max(254),phone:z.string().trim().regex(/^[+0-9 ()-]{10,20}$/)}),address:z.object({line1:z.string().trim().min(4).max(180),line2:z.string().trim().max(180).optional().default(""),landmark:z.string().trim().max(120).optional().default(""),city:z.string().trim().min(2).max(80),state:z.string().trim().min(2).max(80),postalCode:z.string().regex(/^[0-9]{6}$/),country:z.string().default("India")}),paymentMethod:z.enum(["RAZORPAY","COD"]),couponCode:z.string().trim().max(40).optional(),items:z.array(z.object({productId:z.string().min(1),variantId:z.string().optional(),quantity:z.number().int().min(1).max(10),lens:z.object({category:z.nativeEnum(LensCategory),optionId:z.string().optional(),prescription:rxSchema.optional()}).optional()})).min(1).max(20)});
+const orderNo=()=>`OK-${Date.now().toString(36).toUpperCase()}-${randomBytes(3).toString("hex").toUpperCase()}`;
+export async function POST(request:Request){
+ try{
+  const parsed=schema.safeParse(await request.json());if(!parsed.success)return NextResponse.json({ok:false,error:"Please review your address, payment method and cart details.",issues:parsed.error.flatten()},{status:400});
+  const input=parsed.data;if(input.paymentMethod==="RAZORPAY"&&(!process.env.RAZORPAY_KEY_ID||!process.env.RAZORPAY_KEY_SECRET))return NextResponse.json({ok:false,error:"Online payment is not configured. Use Cash on Delivery or contact support."},{status:503});
+  const session=await auth();const userId=session?.user?.id;
+  const result=await prisma.$transaction(async tx=>{
+   const orderItems:Prisma.OrderItemCreateWithoutOrderInput[]=[];let subtotal=0;
+   for(const item of input.items){
+    const product=await tx.product.findFirst({where:{id:item.productId,status:"ACTIVE"},include:{variants:{where:{active:true}}}});if(!product)throw new Error("One of the selected products is unavailable.");
+    let variant=null;let unit=Number(product.basePrice);
+    if(item.variantId){variant=product.variants.find(v=>v.id===item.variantId);if(!variant)throw new Error("A selected frame variant is no longer available.");if(variant.stock<item.quantity)throw new Error("The selected variant does not have enough stock.");unit+=Number(variant.priceDelta)}
+    let lensSnapshot:Prisma.InputJsonValue|undefined;
+    if(item.lens){let lensPrice=0;let lensName="";if(item.lens.optionId){const option=await tx.lensOption.findFirst({where:{id:item.lens.optionId,active:true}});if(!option)throw new Error("A selected lens option is no longer available.");if(option.category!==item.lens.category)throw new Error("Lens category does not match the selected option.");lensPrice=Number(option.price);lensName=option.name}
+     if([LensCategory.SINGLE_VISION,LensCategory.PROGRESSIVE].includes(item.lens.category)){const rx=rxSchema.safeParse(item.lens.prescription);if(!rx.success)throw new Error("A valid prescription is required for this lens choice.");}
+     unit+=lensPrice;lensSnapshot=JSON.parse(JSON.stringify({category:item.lens.category,optionId:item.lens.optionId??null,optionName:lensName||null,prescription:item.lens.prescription??null})) as Prisma.InputJsonValue;
+    }
+    subtotal+=unit*item.quantity;
+    const image=Array.isArray(product.images)?(product.images[0] as {url?:string})?.url:null;
+    orderItems.push({product:{connect:{id:product.id}},...(variant?{variant:{connect:{id:variant.id}}}:{}),productName:product.name,sku:variant?.sku??product.sku,imageUrl:image??null,quantity:item.quantity,unitPrice:unit,lineTotal:unit*item.quantity,lensSnapshot});
+   }
+   let couponId:string|undefined;let discount=0;
+   if(input.couponCode){const coupon=await tx.coupon.findUnique({where:{code:input.couponCode.toUpperCase()}});const now=new Date();if(!coupon||!coupon.active||(coupon.startsAt&&coupon.startsAt>now)||(coupon.expiresAt&&coupon.expiresAt<now)||(coupon.usageLimit!==null&&coupon.usageCount>=coupon.usageLimit))throw new Error("That coupon is not valid right now.");if(subtotal<Number(coupon.minOrderValue))throw new Error(`Add ${Math.ceil(Number(coupon.minOrderValue)-subtotal)} more to use this coupon.`);discount=coupon.discountType==="PERCENTAGE"?subtotal*Number(coupon.discountValue)/100:Number(coupon.discountValue);if(coupon.maxDiscount!==null)discount=Math.min(discount,Number(coupon.maxDiscount));discount=Math.min(subtotal,Math.round(discount*100)/100);couponId=coupon.id;await tx.coupon.update({where:{id:coupon.id},data:{usageCount:{increment:1}}})}
+   const shipping=subtotal-discount>=999?0:99;const tax=0;const total=Math.max(0,subtotal-discount+shipping+tax);
+   const order=await tx.order.create({data:{orderNumber:orderNo(),userId:userId??null,email:input.customer.email.toLowerCase(),phone:input.customer.phone,status:OrderStatus.PENDING,paymentStatus:PaymentStatus.PENDING,paymentMethod:input.paymentMethod as PaymentMethod,subtotal,discountTotal:discount,shippingTotal:shipping,taxTotal:tax,grandTotal:total,couponId,shippingAddress:{fullName:input.customer.fullName,phone:input.customer.phone,line1:input.address.line1,line2:input.address.line2,landmark:input.address.landmark,city:input.address.city,state:input.address.state,postalCode:input.address.postalCode,country:input.address.country},items:{create:orderItems}}});
+   for(const item of input.items){if(item.variantId){const changed=await tx.productVariant.updateMany({where:{id:item.variantId,stock:{gte:item.quantity}},data:{stock:{decrement:item.quantity}}});if(changed.count!==1)throw new Error("Stock changed while placing your order. Please review your cart.")}}
+   if(userId){await tx.address.upsert({where:{id:"__never_existing__"},create:{userId,label:"Checkout",fullName:input.customer.fullName,phone:input.customer.phone,line1:input.address.line1,line2:input.address.line2,landmark:input.address.landmark,city:input.address.city,state:input.address.state,postalCode:input.address.postalCode,country:input.address.country,isDefault:false},update:{}}).catch(async()=>{await tx.address.create({data:{userId,label:"Checkout",fullName:input.customer.fullName,phone:input.customer.phone,line1:input.address.line1,line2:input.address.line2,landmark:input.address.landmark,city:input.address.city,state:input.address.state,postalCode:input.address.postalCode,country:input.address.country,isDefault:false}})})}
+   return order;
+  });
+  if(input.paymentMethod==="COD")return NextResponse.json({ok:true,order:{reference:result.orderNumber,total:Number(result.grandTotal),status:result.status,paymentStatus:result.paymentStatus}});
+  try{const razorpay=new Razorpay({key_id:process.env.RAZORPAY_KEY_ID!,key_secret:process.env.RAZORPAY_KEY_SECRET!});const paymentOrder=await razorpay.orders.create({amount:Math.round(Number(result.grandTotal)*100),currency:"INR",receipt:result.orderNumber,notes:{orderNumber:result.orderNumber}});await prisma.order.update({where:{id:result.id},data:{razorpayOrderId:paymentOrder.id}});return NextResponse.json({ok:true,order:{reference:result.orderNumber,total:Number(result.grandTotal)},payment:{orderId:paymentOrder.id,amount:paymentOrder.amount,currency:paymentOrder.currency,keyId:process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID||process.env.RAZORPAY_KEY_ID}})}catch(error){console.error("Razorpay order creation failed",error instanceof Error?error.message:"unknown");await prisma.order.update({where:{id:result.id},data:{paymentStatus:PaymentStatus.FAILED}});return NextResponse.json({ok:false,error:`Order ${result.orderNumber} was created but payment setup failed. Contact support before retrying.`,reference:result.orderNumber},{status:502})}
+ }catch(error){const message=error instanceof Error?error.message:"Unable to place order.";console.error("Checkout rejected",message);return NextResponse.json({ok:false,error:message},{status:400})}
+}
