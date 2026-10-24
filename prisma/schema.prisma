@@ -96,7 +96,12 @@ enum FrameShape {
   GEOMETRIC
   RIMLESS
 }
-enum FrameMaterial { ACETATE METAL_TITANIUM TR90_STEEL MIXED }
+enum FrameMaterial {
+  ACETATE
+  METAL_TITANIUM
+  TR90_STEEL
+  MIXED
+}
 enum FrameColor {
   BLACK
   TORTOISE
