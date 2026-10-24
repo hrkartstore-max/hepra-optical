@@ -1,0 +1,6 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { getAdminSession } from "@/lib/admin";
+import { prisma } from "@/lib/prisma";
+const schema=z.object({name:z.string().min(2).max(120).optional(),address:z.string().min(5).max(500).optional(),city:z.string().min(2).max(80).optional(),state:z.string().min(2).max(80).optional(),postalCode:z.string().regex(/^[0-9]{6}$/).nullable().optional(),phone:z.string().max(30).nullable().optional(),email:z.string().email().nullable().optional(),latitude:z.number().min(-90).max(90).nullable().optional(),longitude:z.number().min(-180).max(180).nullable().optional(),services:z.array(z.string().max(80)).max(30).optional(),active:z.boolean().optional()});
+export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){const s=await getAdminSession();if(!s||s.user.role!=="ADMIN")return NextResponse.json({ok:false,error:"Administrator access required."},{status:403});const {id}=await params;const p=schema.safeParse(await request.json());if(!p.success)return NextResponse.json({ok:false,error:"Invalid store fields."},{status:400});try{const store=await prisma.store.update({where:{id},data:p.data as never});return NextResponse.json({ok:true,store:{id:store.id,active:store.active}})}catch{return NextResponse.json({ok:false,error:"Store not found or update failed."},{status:400})}}
