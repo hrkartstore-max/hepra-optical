@@ -1,0 +1,9 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { DiscountType } from "@prisma/client";
+import { getAdminSession } from "@/lib/admin";
+import { prisma } from "@/lib/prisma";
+export const dynamic="force-dynamic";
+export async function GET(){const s=await getAdminSession();if(!s)return NextResponse.json({ok:false,error:"Admin access required."},{status:403});const rows=await prisma.coupon.findMany({orderBy:{createdAt:"desc"},take:100});return NextResponse.json({ok:true,coupons:rows.map(c=>({...c,discountValue:String(c.discountValue),minOrderValue:String(c.minOrderValue),maxDiscount:c.maxDiscount==null?null:String(c.maxDiscount)}))})}
+const schema=z.object({code:z.string().trim().regex(/^[A-Za-z0-9_-]{3,30}$/),description:z.string().max(200).optional(),discountType:z.nativeEnum(DiscountType),discountValue:z.number().positive().max(100),minOrderValue:z.number().nonnegative().default(0),maxDiscount:z.number().positive().optional(),usageLimit:z.number().int().positive().optional(),expiresAt:z.string().datetime().optional(),active:z.boolean().default(true)});
+export async function POST(request:Request){const s=await getAdminSession();if(!s||s.user.role!=="ADMIN")return NextResponse.json({ok:false,error:"Administrator access required."},{status:403});const p=schema.safeParse(await request.json());if(!p.success)return NextResponse.json({ok:false,error:"Check coupon values."},{status:400});try{const d=p.data;const coupon=await prisma.coupon.create({data:{code:d.code.toUpperCase(),description:d.description,discountType:d.discountType,discountValue:d.discountValue,minOrderValue:d.minOrderValue,maxDiscount:d.maxDiscount,usageLimit:d.usageLimit,expiresAt:d.expiresAt?new Date(d.expiresAt):null,active:d.active}});return NextResponse.json({ok:true,coupon:{id:coupon.id,code:coupon.code}},{status:201})}catch{return NextResponse.json({ok:false,error:"Coupon code already exists or could not be saved."},{status:400})}}
