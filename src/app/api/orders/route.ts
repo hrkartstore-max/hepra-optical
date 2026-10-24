@@ -42,8 +42,8 @@ export async function POST(request:Request){
   }
   let discount=0;let couponId:string|undefined;
   if(input.couponCode){
-   const coupon=await prisma.coupon.findFirst({where:{code:input.couponCode.toUpperCase().trim(),active:true,AND:[{OR:[{startsAt:null},{startsAt:{lte:new Date()}}]},{OR:[{expiresAt:null},{expiresAt:{gte:new Date()}}]},{OR:[{usageLimit:null},{usageCount:{lt:prisma.coupon.fields.usageLimit as any}}]}]}});
-   if(!coupon)return NextResponse.json({error:"That coupon is not valid right now."},{status:400});
+   const coupon=await prisma.coupon.findFirst({where:{code:input.couponCode.toUpperCase().trim(),active:true,AND:[{OR:[{startsAt:null},{startsAt:{lte:new Date()}}]},{OR:[{expiresAt:null},{expiresAt:{gte:new Date()}}]}]}});
+   if(!coupon||(coupon.usageLimit!==null&&coupon.usageCount>=coupon.usageLimit))return NextResponse.json({error:"That coupon is not valid right now."},{status:400});
    if(subtotal<Number(coupon.minOrderValue))return NextResponse.json({error:"Your subtotal does not meet this coupon's minimum."},{status:400});
    discount=coupon.discountType==="PERCENTAGE"?subtotal*Number(coupon.discountValue)/100:Number(coupon.discountValue);
    if(coupon.maxDiscount!==null)discount=Math.min(discount,Number(coupon.maxDiscount));
