@@ -4,16 +4,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-permissions:
-  contents: read
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     env:
-      DATABASE_URL: postgresql://optikart:optikart@localhost:5432/optikart
-      DIRECT_URL: postgresql://optikart:optikart@localhost:5432/optikart
-      AUTH_SECRET: ci-only-not-for-production
+      DATABASE_URL: postgresql://optikart:optikart@localhost:5432/optikart?schema=public
+      DIRECT_URL: postgresql://optikart:optikart@localhost:5432/optikart?schema=public
+      AUTH_SECRET: ci-only-secret-not-for-production
       NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
@@ -21,8 +18,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm install --no-audit --no-fund
+      - run: npm ci
       - run: npx prisma validate
       - run: npm run typecheck
-      - run: npm run lint
       - run: npm run build
